@@ -83,22 +83,22 @@ This implementation plan provides a series of prompts for implementing the AI ag
   - _Requirements: 2.2_
 
 
-- [ ] 3. Build HTTP communication layer
-- [ ] 3.1 Create communication crate with ApiClient
+- [x] 3. Build HTTP communication layer
+- [x] 3.1 Create communication crate with ApiClient
   - Create communication crate with `cargo new --lib communication`
   - Define ApiClient struct wrapping reqwest::Client in `communication/src/client.rs`
   - Implement `new()` constructor with default timeout of 30 seconds
   - Add timeout configuration field
   - _Requirements: 3.1, 3.3_
 
-- [ ] 3.2 Implement JSON POST method with error handling
+- [x] 3.2 Implement JSON POST method with error handling
   - Implement `post_json<T, R>(&self, url: &str, body: &T) -> Result<R>` method
   - Use reqwest to send JSON POST requests
   - Handle network errors, timeout errors, and deserialization errors
   - Convert reqwest errors to AgentError::LLMProvider
   - _Requirements: 3.3_
 
-- [ ] 3.3 Implement retry logic with exponential backoff
+- [x] 3.3 Implement retry logic with exponential backoff
   - Implement `with_retry<F, T>(operation: F, max_attempts: u32) -> Result<T>` function
   - Use exponential backoff starting at 1 second, doubling each retry
   - Maximum 3 attempts for transient failures
