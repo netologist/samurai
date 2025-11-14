@@ -1,0 +1,13 @@
+[package]
+name = "llm"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+agent-core = { version = "0.1.0", path = "../core" }
+async-trait = "0.1.89"
+communication = { version = "0.1.0", path = "../communication" }
+config = { version = "0.1.0", path = "../config" }
+reqwest = { workspace = true, features = ["json"] }
+serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true

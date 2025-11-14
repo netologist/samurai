@@ -1,5 +1,5 @@
 [workspace]
-members = [ "communication", "config","core"]
+members = [ "communication", "config","core", "llm"]
 resolver = "2"
 
 [workspace.dependencies]
