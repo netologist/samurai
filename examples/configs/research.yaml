@@ -1,0 +1,87 @@
+# Research Assistant Configuration
+#
+# This configuration file sets up a research-capable agent with:
+# - OpenAI's GPT-4 model for advanced reasoning and planning
+# - Tools enabled for web search and file reading
+# - Higher token budget for longer research contexts
+# - Memory system optimized for multi-step research workflows
+#
+# The research assistant can decompose complex queries, use tools
+# to gather information, and synthesize comprehensive responses.
+
+# LLM Configuration
+llm:
+  # Provider: "openai" or "anthropic"
+  # Using OpenAI for this example
+  provider: openai
+  
+  # Model: Using GPT-4 for better reasoning and planning capabilities
+  # GPT-4 is more expensive but provides superior performance for
+  # complex research tasks that require multi-step reasoning
+  # Alternative: gpt-3.5-turbo for faster, cheaper research
+  model: gpt-4
+  
+  # API Key: Authentication for the LLM provider
+  # Using environment variable for security (set OPENAI_API_KEY)
+  api_key: ${OPENAI_API_KEY}
+  
+  # Temperature: Controls randomness in responses (0.0 to 2.0)
+  # 0.5 provides focused, consistent reasoning for research tasks
+  # Lower than chatbot to prioritize accuracy over creativity
+  temperature: 0.5
+  
+  # Max Tokens: Maximum length of generated responses
+  # 1500 tokens ≈ 1125 words, suitable for detailed research summaries
+  # Research responses often need more space than simple chat
+  max_tokens: 1500
+
+# Memory Configuration
+memory:
+  # Max Messages: Maximum number of messages to keep in memory
+  # 30 messages = 15 conversation turns
+  # Higher than chatbot to maintain context across research sessions
+  max_messages: 30
+  
+  # Token Budget: Maximum tokens to include in context window
+  # 4000 tokens allows for longer research contexts
+  # Important for maintaining context when using multiple tools
+  # and synthesizing information from various sources
+  token_budget: 4000
+
+# Tools Configuration
+# List of tools available to the research assistant
+tools:
+  # web_search: Simulated web search capability (WebSearchStub)
+  # In production, this would integrate with a real search API
+  # like Google Custom Search, Bing API, or SerpAPI
+  - web_search
+  
+  # file_reader: Allows reading and analyzing file contents
+  # Useful for examining documents, code, configuration files, etc.
+  # The agent can read files to gather information for research
+  - file_reader
+
+# Guardrails Configuration
+# Empty list for research assistant - we want flexibility
+# Research tasks benefit from broad tool access
+# In production, you might add:
+# - file_path: Restrict file access to specific directories
+# - rate_limit: Prevent excessive API calls
+guardrails: []
+
+# Research Assistant Notes:
+#
+# This configuration is optimized for research workflows where the agent:
+# 1. Receives a research question or task
+# 2. Plans a multi-step approach using available tools
+# 3. Executes tool calls to gather information
+# 4. Synthesizes findings into a comprehensive response
+#
+# Example research queries:
+# - "Search for information about Rust async programming and summarize key concepts"
+# - "Read the README.md file and explain what this project does"
+# - "Find information about AI agent architectures and compare approaches"
+#
+# The higher token budget and message limit support longer research sessions
+# where the agent may need to reference previous findings and maintain
+# context across multiple tool invocations.

@@ -563,14 +563,14 @@ This implementation plan provides a series of prompts for implementing the AI ag
   - _Requirements: 10.3, 12.5_
 
 
-- [ ] 13. Create example agents
-- [ ] 13.1 Set up examples directory structure
+- [x] 13. Create example agents
+- [x] 13.1 Set up examples directory structure
   - Create examples directory in workspace root
   - Create examples/configs subdirectory for configuration files
   - Update workspace Cargo.toml to include example binaries
   - _Requirements: 11.1_
 
-- [ ] 13.2 Create simple chatbot example
+- [x] 13.2 Create simple chatbot example
   - Create `examples/chatbot.rs` with tokio main function
   - Load config from examples/configs/chatbot.yaml
   - Initialize agent with LLM and memory only (no tools)
@@ -578,7 +578,7 @@ This implementation plan provides a series of prompts for implementing the AI ag
   - Add comments explaining what this example demonstrates
   - _Requirements: 11.1, 11.2, 11.3_
 
-- [ ] 13.3 Create chatbot configuration file
+- [x] 13.3 Create chatbot configuration file
   - Create `examples/configs/chatbot.yaml`
   - Configure OpenAI provider with gpt-3.5-turbo
   - Set temperature to 0.7 and max_tokens to 500
@@ -586,7 +586,7 @@ This implementation plan provides a series of prompts for implementing the AI ag
   - Add comments explaining each setting
   - _Requirements: 11.1_
 
-- [ ] 13.4 Create research assistant example
+- [x] 13.4 Create research assistant example
   - Create `examples/research.rs` with tokio main function
   - Load config from examples/configs/research.yaml
   - Initialize agent with WebSearchStub and FileReader tools
@@ -594,14 +594,14 @@ This implementation plan provides a series of prompts for implementing the AI ag
   - Add comments explaining tool usage
   - _Requirements: 11.1, 11.2, 11.3_
 
-- [ ] 13.5 Create research assistant configuration file
+- [x] 13.5 Create research assistant configuration file
   - Create `examples/configs/research.yaml`
   - Configure with tools enabled (web_search, file_reader)
   - Set higher token budget for longer conversations
   - Add comments explaining research-specific settings
   - _Requirements: 11.1_
 
-- [ ] 13.6 Create file manager example
+- [x] 13.6 Create file manager example
   - Create `examples/file_manager.rs` with tokio main function
   - Load config from examples/configs/file_manager.yaml
   - Initialize agent with FileReader tool
@@ -610,14 +610,14 @@ This implementation plan provides a series of prompts for implementing the AI ag
   - Add comments explaining guardrail usage
   - _Requirements: 11.1, 11.2, 11.3_
 
-- [ ] 13.7 Create file manager configuration file
+- [x] 13.7 Create file manager configuration file
   - Create `examples/configs/file_manager.yaml`
   - Configure with file_reader tool enabled
   - Specify allowed file paths in guardrails section
   - Add comments explaining safety settings
   - _Requirements: 11.1_
 
-- [ ] 13.8 Create README for examples
+- [x] 13.8 Create README for examples
   - Create `examples/README.md` explaining each example
   - Include instructions for running each example
   - Document required environment variables (API keys)

@@ -1,0 +1,57 @@
+# Simple Chatbot Configuration
+#
+# This configuration file sets up a basic conversational agent with:
+# - OpenAI's GPT-3.5-turbo model for natural language understanding
+# - Moderate temperature for balanced creativity and coherence
+# - Limited token output for concise responses
+# - Memory system for maintaining conversation context
+#
+# The chatbot has no tools enabled, focusing purely on conversation.
+
+# LLM Configuration
+llm:
+  # Provider: "openai" or "anthropic"
+  # Using OpenAI for this example with GPT-3.5-turbo
+  provider: openai
+  
+  # Model: The specific model to use
+  # gpt-3.5-turbo is fast and cost-effective for simple conversations
+  model: gpt-3.5-turbo
+  
+  # API Key: Authentication for the LLM provider
+  # Using environment variable for security (set OPENAI_API_KEY)
+  # Never commit API keys directly in config files!
+  api_key: ${OPENAI_API_KEY}
+  
+  # Temperature: Controls randomness in responses (0.0 to 2.0)
+  # 0.7 provides a good balance between creativity and consistency
+  # Lower values (0.1-0.3) = more focused and deterministic
+  # Higher values (0.8-1.5) = more creative and varied
+  temperature: 0.7
+  
+  # Max Tokens: Maximum length of generated responses
+  # 500 tokens ≈ 375 words, suitable for concise chatbot responses
+  # Adjust higher for longer responses, lower for brevity
+  max_tokens: 500
+
+# Memory Configuration
+memory:
+  # Max Messages: Maximum number of messages to keep in memory
+  # 20 messages = 10 conversation turns (user + assistant pairs)
+  # Older messages are dropped when this limit is exceeded
+  max_messages: 20
+  
+  # Token Budget: Maximum tokens to include in context window
+  # 2000 tokens ensures we stay well within model limits
+  # Helps prevent context overflow with long conversations
+  token_budget: 2000
+
+# Tools Configuration
+# Empty list means no tools are available to this agent
+# This chatbot focuses on pure conversation without external actions
+tools: []
+
+# Guardrails Configuration
+# Empty list means no safety guardrails are enforced
+# For a simple chatbot, we rely on the LLM's built-in safety features
+guardrails: []

@@ -9,3 +9,34 @@ tokio = { version = "1.48", features = ["full"] }
 chrono = { version = "0.4", features = ["serde"] }
 reqwest = { version = "0.12", features = ["json"] }
 serde_json = "1.0"
+
+# Root package for examples
+[package]
+name = "ai-agent-framework"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+agent_core = { package = "agent-core", path = "core" }
+config = { path = "config" }
+llm = { path = "llm" }
+memory = { path = "memory" }
+tools = { path = "tools" }
+planner = { path = "planner" }
+executor = { path = "executor" }
+guardrails = { path = "guardrails" }
+tokio = { workspace = true }
+colored = "2.1"
+rustyline = "12.0"
+
+[[example]]
+name = "chatbot"
+path = "examples/chatbot.rs"
+
+[[example]]
+name = "research"
+path = "examples/research.rs"
+
+[[example]]
+name = "file_manager"
+path = "examples/file_manager.rs"

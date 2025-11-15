@@ -1,0 +1,105 @@
+# File Manager Configuration
+#
+# This configuration file sets up a file management agent with:
+# - OpenAI's GPT-3.5-turbo model for efficient file operations
+# - FileReader tool for reading file contents
+# - FilePathGuardrail for restricting file access to safe directories
+# - Security-focused design to prevent unauthorized file access
+#
+# The file manager demonstrates how guardrails enforce safety constraints
+# and prevent agents from performing dangerous operations.
+
+# LLM Configuration
+llm:
+  # Provider: "openai" or "anthropic"
+  # Using OpenAI for this example
+  provider: openai
+  
+  # Model: Using GPT-3.5-turbo for cost-effective file operations
+  # File management tasks don't require GPT-4's advanced reasoning
+  # GPT-3.5-turbo is sufficient for reading and summarizing files
+  model: gpt-3.5-turbo
+  
+  # API Key: Authentication for the LLM provider
+  # Using environment variable for security (set OPENAI_API_KEY)
+  api_key: ${OPENAI_API_KEY}
+  
+  # Temperature: Controls randomness in responses (0.0 to 2.0)
+  # 0.3 provides focused, deterministic responses for file operations
+  # Lower temperature ensures consistent file analysis
+  temperature: 0.3
+  
+  # Max Tokens: Maximum length of generated responses
+  # 800 tokens ≈ 600 words, suitable for file summaries
+  # Enough space to summarize file contents without being excessive
+  max_tokens: 800
+
+# Memory Configuration
+memory:
+  # Max Messages: Maximum number of messages to keep in memory
+  # 15 messages = 7-8 conversation turns
+  # Moderate memory for file management sessions
+  max_messages: 15
+  
+  # Token Budget: Maximum tokens to include in context window
+  # 2500 tokens provides enough context for file operations
+  # Balances context retention with efficiency
+  token_budget: 2500
+
+# Tools Configuration
+# Only FileReader tool is enabled for this example
+tools:
+  # file_reader: Allows reading file contents
+  # This is the core capability of the file manager
+  # The agent can read files to answer questions about their contents
+  - file_reader
+
+# Guardrails Configuration
+# FilePathGuardrail is the key security feature
+guardrails:
+  # file_path: Restricts file access to allowed directories
+  # This guardrail validates all file operations before execution
+  # Attempts to access files outside allowed paths are blocked
+  # 
+  # In the example code, allowed paths are set to:
+  # - Current working directory
+  # - Examples directory
+  #
+  # This prevents the agent from accessing sensitive files like:
+  # - /etc/passwd (system files)
+  # - ~/.ssh/ (SSH keys)
+  # - /var/log/ (system logs)
+  # - Any files outside the project directory
+  - file_path
+
+# File Manager Security Notes:
+#
+# This configuration demonstrates security-conscious agent design:
+#
+# 1. Principle of Least Privilege:
+#    - Only FileReader tool is enabled (no write operations)
+#    - Access is restricted to specific directories
+#    - No other tools that could be misused
+#
+# 2. Guardrail Enforcement:
+#    - FilePathGuardrail validates all file operations
+#    - Violations are caught before execution
+#    - Clear error messages inform users of restrictions
+#
+# 3. Safe by Default:
+#    - Allowed paths must be explicitly configured
+#    - Unknown paths are denied by default
+#    - No way to bypass guardrails through prompting
+#
+# Example safe queries:
+# - "Read the README.md file"
+# - "What's in the Cargo.toml file?"
+# - "Summarize the examples/configs/chatbot.yaml file"
+#
+# Example blocked queries (will trigger guardrail):
+# - "Read /etc/passwd"
+# - "Show me ~/.ssh/id_rsa"
+# - "Access /var/log/system.log"
+#
+# The guardrail will prevent these operations and return an error,
+# demonstrating how safety constraints protect against misuse.
