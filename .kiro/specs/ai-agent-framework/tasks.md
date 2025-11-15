@@ -243,15 +243,15 @@ This implementation plan provides a series of prompts for implementing the AI ag
   - _Requirements: 4.2, 4.3_
 
 
-- [ ] 7. Implement tool system and registry
-- [ ] 7.1 Create tools crate with Tool trait
+- [x] 7. Implement tool system and registry
+- [x] 7.1 Create tools crate with Tool trait
   - Create tools crate with `cargo new --lib tools`
   - Define Tool async trait in `tools/src/tool.rs`
   - Add methods: `name(&self) -> &str`, `description(&self) -> &str`, `parameters_schema(&self) -> Value`, `async execute(&self, params: Value) -> Result<Value>`
   - Use async_trait macro
   - _Requirements: 5.1, 5.2_
 
-- [ ] 7.2 Implement ToolRegistry
+- [x] 7.2 Implement ToolRegistry
   - Create `tools/src/registry.rs` with ToolRegistry struct
   - Use HashMap<String, Box<dyn Tool>> for storage
   - Implement `register(&mut self, tool: Box<dyn Tool>)` method
@@ -259,7 +259,7 @@ This implementation plan provides a series of prompts for implementing the AI ag
   - Implement `list_tools(&self) -> Vec<ToolInfo>` to return tool names and descriptions
   - _Requirements: 5.2_
 
-- [ ] 7.3 Implement Calculator tool
+- [x] 7.3 Implement Calculator tool
   - Create `tools/src/calculator.rs` with Calculator struct
   - Implement Tool trait with arithmetic operations (add, subtract, multiply, divide)
   - Define JSON schema for parameters (operation, a, b)
@@ -267,7 +267,7 @@ This implementation plan provides a series of prompts for implementing the AI ag
   - Return result as JSON value
   - _Requirements: 5.4_
 
-- [ ] 7.4 Implement FileReader tool
+- [x] 7.4 Implement FileReader tool
   - Create `tools/src/file_reader.rs` with FileReader struct
   - Implement Tool trait for reading file contents
   - Define JSON schema for parameters (file_path)
@@ -276,14 +276,14 @@ This implementation plan provides a series of prompts for implementing the AI ag
   - Handle file not found and permission errors
   - _Requirements: 5.4_
 
-- [ ] 7.5 Implement WebSearchStub tool
+- [x] 7.5 Implement WebSearchStub tool
   - Create `tools/src/web_search.rs` with WebSearchStub struct
   - Implement Tool trait that returns mock search results
   - Define JSON schema for parameters (query)
   - Return hardcoded mock results for demonstration
   - _Requirements: 5.4_
 
-- [ ] 7.6 Update tools lib.rs with public exports
+- [x] 7.6 Update tools lib.rs with public exports
   - Re-export Tool trait, ToolRegistry
   - Re-export Calculator, FileReader, WebSearchStub
   - Add module documentation
