@@ -633,7 +633,7 @@ This implementation plan provides a series of prompts for implementing the AI ag
   - Implement test fixtures for common scenarios
   - _Requirements: 11.5_
 
-- [ ] 14.2 Write agent flow integration test
+- [x] 14.2 Write agent flow integration test
   - Create `tests/agent_flow.rs`
   - Test end-to-end agent execution with mocked LLM
   - Verify plan creation, validation, and execution
