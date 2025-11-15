@@ -1,0 +1,12 @@
+[package]
+name = "planner"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+agent-core = { path = "../core" }
+llm = { path = "../llm" }
+memory = { path = "../memory" }
+tools = { path = "../tools" }
+serde = { workspace = true }
+serde_json = { workspace = true }

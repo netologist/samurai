@@ -298,8 +298,8 @@ This implementation plan provides a series of prompts for implementing the AI ag
   - _Requirements: 5.2, 5.3, 5.4_
 
 
-- [ ] 8. Create planning system with LLM reasoning
-- [ ] 8.1 Create planner crate with Plan and Step types
+- [x] 8. Create planning system with LLM reasoning
+- [x] 8.1 Create planner crate with Plan and Step types
   - Create planner crate with `cargo new --lib planner`
   - Define Plan struct in `planner/src/types.rs` with steps and reasoning fields
   - Define Step enum with ToolCall, Reasoning, and Response variants
@@ -307,40 +307,40 @@ This implementation plan provides a series of prompts for implementing the AI ag
   - Add Clone and Debug derives
   - _Requirements: 6.1, 6.3_
 
-- [ ] 8.2 Implement Planner struct
+- [x] 8.2 Implement Planner struct
   - Create `planner/src/planner.rs` with Planner struct
   - Store LLMProvider and MemoryStore references
   - Implement constructor `new(llm: Box<dyn LLMProvider>, memory: Box<dyn MemoryStore>) -> Self`
   - _Requirements: 6.1, 6.2_
 
-- [ ] 8.3 Create system prompt template for planning
+- [x] 8.3 Create system prompt template for planning
   - Implement `build_system_prompt(&self, available_tools: &[ToolInfo]) -> String` method
   - Create prompt that instructs LLM to generate structured plans
   - Include available tools with descriptions and parameter schemas
   - Specify expected output format (JSON with steps array)
   - _Requirements: 6.2_
 
-- [ ] 8.4 Implement plan generation
+- [x] 8.4 Implement plan generation
   - Implement `create_plan(&self, goal: &str, available_tools: &[ToolInfo]) -> Result<Plan>` method
   - Build system prompt with available tools
   - Create messages array with system prompt and user goal
   - Call LLM to generate plan
   - _Requirements: 6.1, 6.2_
 
-- [ ] 8.5 Implement plan parsing
+- [x] 8.5 Implement plan parsing
   - Implement `parse_plan(&self, response: &str) -> Result<Plan>` method
   - Parse LLM response as JSON
   - Extract steps array and convert to Step enum variants
   - Handle parsing errors gracefully
   - _Requirements: 6.3_
 
-- [ ] 8.6 Implement plan validation
+- [x] 8.6 Implement plan validation
   - Implement `validate_plan(&self, plan: &Plan, registry: &ToolRegistry) -> Result<()>` method
   - Check that all tool calls reference tools in registry
   - Return error if unknown tool is referenced
   - _Requirements: 6.4, 6.5_
 
-- [ ] 8.7 Update planner lib.rs with public exports
+- [x] 8.7 Update planner lib.rs with public exports
   - Re-export Planner, Plan, Step, ToolCall types
   - Add module documentation
   - _Requirements: 6.1_
