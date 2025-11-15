@@ -503,15 +503,15 @@ This implementation plan provides a series of prompts for implementing the AI ag
   - _Requirements: 9.2, 9.3, 9.4_
 
 
-- [ ] 12. Build command-line interface
-- [ ] 12.1 Create cli crate with argument parsing
+- [x] 12. Build command-line interface
+- [x] 12.1 Create cli crate with argument parsing
   - Create cli crate with `cargo new --bin cli`
   - Define CliArgs struct in `cli/src/args.rs` using clap derive
   - Add fields: config (PathBuf), query (Option<String>), verbose (bool)
   - Add clap attributes for help text and argument parsing
   - _Requirements: 10.1, 10.2_
 
-- [ ] 12.2 Implement agent initialization
+- [x] 12.2 Implement agent initialization
   - Create `cli/src/agent.rs` with Agent struct
   - Store all framework components (llm, memory, tools, planner, executor, guardrails, rules)
   - Implement `new(config: AgentConfig) -> Result<Self>` constructor
@@ -521,7 +521,7 @@ This implementation plan provides a series of prompts for implementing the AI ag
   - Register default guardrails if configured
   - _Requirements: 10.3_
 
-- [ ] 12.3 Implement process method for agent
+- [x] 12.3 Implement process method for agent
   - Implement `process(&mut self, query: &str) -> Result<String>` method on Agent
   - Add user query to memory
   - Use planner to create plan from query
@@ -530,14 +530,14 @@ This implementation plan provides a series of prompts for implementing the AI ag
   - Return final response
   - _Requirements: 10.3_
 
-- [ ] 12.4 Implement single-turn mode
+- [x] 12.4 Implement single-turn mode
   - Create `cli/src/single.rs` with `run(agent: &mut Agent, query: &str) -> Result<()>` function
   - Call agent.process with query
   - Print response to stdout
   - Handle errors and print user-friendly messages
   - _Requirements: 10.4_
 
-- [ ] 12.5 Implement REPL mode
+- [x] 12.5 Implement REPL mode
   - Create `cli/src/repl.rs` with `run(agent: Agent) -> Result<()>` function
   - Use rustyline for line editing and history
   - Display prompt ">> " for user input
@@ -547,7 +547,7 @@ This implementation plan provides a series of prompts for implementing the AI ag
   - Show conversation history on request
   - _Requirements: 10.4, 10.5_
 
-- [ ] 12.6 Implement main function
+- [x] 12.6 Implement main function
   - Create `cli/src/main.rs` with tokio main function
   - Parse command-line arguments with CliArgs
   - Load configuration from file
@@ -556,7 +556,7 @@ This implementation plan provides a series of prompts for implementing the AI ag
   - Handle errors with anyhow and display user-friendly messages
   - _Requirements: 10.1, 10.2, 10.3, 10.4_
 
-- [ ] 12.7 Add error handling and logging
+- [x] 12.7 Add error handling and logging
   - Use anyhow for error propagation in main and CLI functions
   - Add colored output for errors (red) and success (green)
   - Add verbose logging when --verbose flag is set

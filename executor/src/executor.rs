@@ -29,6 +29,14 @@ impl Executor {
         Self { tools, memory }
     }
 
+    /// Lists all available tools in the registry.
+    /// 
+    /// # Returns
+    /// A vector of ToolInfo containing name, description, and schema for each tool
+    pub fn list_tools(&self) -> Vec<tools::ToolInfo> {
+        self.tools.list_tools()
+    }
+
     /// Executes a complete plan by running each step sequentially.
     /// 
     /// This method iterates through all steps in the plan, executing each one

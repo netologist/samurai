@@ -1,0 +1,22 @@
+[package]
+name = "cli"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+clap = { version = "4.0", features = ["derive"] }
+tokio = { workspace = true }
+anyhow = "1.0"
+rustyline = "12.0"
+colored = "2.0"
+
+# Framework crates
+agent-core = { path = "../core" }
+config = { path = "../config" }
+llm = { path = "../llm" }
+memory = { path = "../memory" }
+tools = { path = "../tools" }
+planner = { path = "../planner" }
+executor = { path = "../executor" }
+guardrails = { path = "../guardrails" }
+rules = { path = "../rules" }
