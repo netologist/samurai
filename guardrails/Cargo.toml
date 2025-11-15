@@ -1,0 +1,9 @@
+[package]
+name = "guardrails"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+agent-core = { version = "0.1.0", path = "../core" }
+planner = { version = "0.1.0", path = "../planner" }
+serde_json.workspace = true

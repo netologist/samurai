@@ -339,6 +339,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "guardrails"
+version = "0.1.0"
+dependencies = [
+ "agent-core",
+ "planner",
+ "serde_json",
+]
+
+[[package]]
 name = "h2"
 version = "0.4.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"

@@ -413,14 +413,14 @@ This implementation plan provides a series of prompts for implementing the AI ag
   - _Requirements: 7.2, 7.3, 7.4, 7.5_
 
 
-- [ ] 10. Implement safety guardrails system
-- [ ] 10.1 Create guardrails crate with Guardrail trait
+- [x] 10. Implement safety guardrails system
+- [x] 10.1 Create guardrails crate with Guardrail trait
   - Create guardrails crate with `cargo new --lib guardrails`
   - Define Guardrail trait in `guardrails/src/guardrail.rs`
   - Add methods: `name(&self) -> &str`, `validate(&self, plan: &Plan) -> Result<()>`
   - _Requirements: 8.1_
 
-- [ ] 10.2 Implement GuardrailRegistry
+- [x] 10.2 Implement GuardrailRegistry
   - Create `guardrails/src/registry.rs` with GuardrailRegistry struct
   - Use Vec<Box<dyn Guardrail>> for storage
   - Implement `register(&mut self, guardrail: Box<dyn Guardrail>)` method
@@ -428,7 +428,7 @@ This implementation plan provides a series of prompts for implementing the AI ag
   - Stop on first violation and return error
   - _Requirements: 8.1, 8.3, 8.4_
 
-- [ ] 10.3 Implement FilePathGuardrail
+- [x] 10.3 Implement FilePathGuardrail
   - Create `guardrails/src/file_path.rs` with FilePathGuardrail struct
   - Store allowed_paths: Vec<PathBuf> field
   - Implement Guardrail trait
@@ -437,7 +437,7 @@ This implementation plan provides a series of prompts for implementing the AI ag
   - Return GuardrailViolation error if path not allowed
   - _Requirements: 8.2, 8.3, 8.4_
 
-- [ ] 10.4 Implement RateLimitGuardrail
+- [x] 10.4 Implement RateLimitGuardrail
   - Create `guardrails/src/rate_limit.rs` with RateLimitGuardrail struct
   - Store max_calls_per_minute field and call tracking
   - Implement Guardrail trait
@@ -446,7 +446,7 @@ This implementation plan provides a series of prompts for implementing the AI ag
   - Return GuardrailViolation error if limit exceeded
   - _Requirements: 8.2, 8.3, 8.4_
 
-- [ ] 10.5 Update guardrails lib.rs with public exports
+- [x] 10.5 Update guardrails lib.rs with public exports
   - Re-export Guardrail trait, GuardrailRegistry
   - Re-export FilePathGuardrail, RateLimitGuardrail
   - Add module documentation
