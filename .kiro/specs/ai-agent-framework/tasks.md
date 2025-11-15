@@ -197,40 +197,40 @@ This implementation plan provides a series of prompts for implementing the AI ag
   - _Requirements: 3.2, 3.3_
 
 
-- [ ] 6. Build memory system with token awareness
-- [ ] 6.1 Create memory crate with MemoryStore trait
+- [x] 6. Build memory system with token awareness
+- [x] 6.1 Create memory crate with MemoryStore trait
   - Create memory crate with `cargo new --lib memory`
   - Define MemoryStore trait in `memory/src/store.rs`
   - Add methods: `add_message(&mut self, message: Message)`, `get_recent(&self, limit: usize) -> Vec<Message>`, `get_within_budget(&self, token_budget: usize) -> Vec<Message>`, `clear(&mut self)`
   - _Requirements: 4.1, 4.2, 4.3_
 
-- [ ] 6.2 Implement InMemoryStore
+- [x] 6.2 Implement InMemoryStore
   - Create `memory/src/in_memory.rs` with InMemoryStore struct
   - Use Vec<Message> for storage
   - Implement MemoryStore trait methods
   - Implement `get_recent` to return last N messages in chronological order
   - _Requirements: 4.1, 4.2, 4.4_
 
-- [ ] 6.3 Add token counting functionality
+- [x] 6.3 Add token counting functionality
   - Add tiktoken-rs dependency for OpenAI token counting
   - Implement helper function `count_tokens(message: &Message) -> usize`
   - Use cl100k_base encoding (GPT-3.5/GPT-4)
   - _Requirements: 4.3_
 
-- [ ] 6.4 Implement token-aware retrieval
+- [x] 6.4 Implement token-aware retrieval
   - Implement `get_within_budget` method in InMemoryStore
   - Iterate messages from most recent, counting tokens
   - Stop when adding next message would exceed budget
   - Return messages in chronological order
   - _Requirements: 4.3_
 
-- [ ] 6.5 Create ConversationHistory wrapper
+- [x] 6.5 Create ConversationHistory wrapper
   - Create `memory/src/history.rs` with ConversationHistory struct
   - Wrap MemoryStore with helper methods
   - Add convenience methods for common operations
   - _Requirements: 4.2_
 
-- [ ] 6.6 Update memory lib.rs with public exports
+- [x] 6.6 Update memory lib.rs with public exports
   - Re-export MemoryStore trait, InMemoryStore, ConversationHistory
   - Add module documentation
   - _Requirements: 4.1, 4.4_
