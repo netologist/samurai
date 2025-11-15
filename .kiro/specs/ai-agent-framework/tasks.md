@@ -460,14 +460,14 @@ This implementation plan provides a series of prompts for implementing the AI ag
   - _Requirements: 8.3, 8.4_
 
 
-- [ ] 11. Create rules engine for behavior customization
-- [ ] 11.1 Create rules crate with Rule trait and PlanningContext
+- [x] 11. Create rules engine for behavior customization
+- [x] 11.1 Create rules crate with Rule trait and PlanningContext
   - Create rules crate with `cargo new --lib rules`
   - Define PlanningContext struct in `rules/src/context.rs` with system_prompt, constraints, and metadata fields
   - Define Rule trait in `rules/src/rule.rs` with methods: `name(&self) -> &str`, `priority(&self) -> u32`, `apply(&self, context: &mut PlanningContext)`
   - _Requirements: 9.1, 9.2_
 
-- [ ] 11.2 Implement RuleEngine
+- [x] 11.2 Implement RuleEngine
   - Create `rules/src/engine.rs` with RuleEngine struct
   - Use Vec<Box<dyn Rule>> for storage
   - Implement `add_rule(&mut self, rule: Box<dyn Rule>)` method
@@ -475,21 +475,21 @@ This implementation plan provides a series of prompts for implementing the AI ag
   - Sort rules by priority before applying
   - _Requirements: 9.2, 9.3_
 
-- [ ] 11.3 Implement ResponseLengthRule
+- [x] 11.3 Implement ResponseLengthRule
   - Create `rules/src/response_length.rs` with ResponseLengthRule struct
   - Store max_words field
   - Implement Rule trait with priority 100
   - In apply method, add constraint to context about word limit
   - _Requirements: 9.4_
 
-- [ ] 11.4 Implement ToneRule
+- [x] 11.4 Implement ToneRule
   - Create `rules/src/tone.rs` with ToneRule struct
   - Store tone field (enum: Formal, Casual, Technical)
   - Implement Rule trait with priority 50
   - In apply method, modify system_prompt to include tone guidance
   - _Requirements: 9.4_
 
-- [ ] 11.5 Update rules lib.rs with public exports
+- [x] 11.5 Update rules lib.rs with public exports
   - Re-export Rule trait, RuleEngine, PlanningContext
   - Re-export ResponseLengthRule, ToneRule
   - Add module documentation
