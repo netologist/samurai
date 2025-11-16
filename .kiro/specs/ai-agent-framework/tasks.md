@@ -145,7 +145,7 @@ This implementation plan provides a series of prompts for implementing the AI ag
   - Handle API errors (auth failures, rate limits, invalid requests)
   - _Requirements: 3.2, 3.3_
 
-- [ ]* 4.5 Write integration test for OpenAI provider
+- [x] 4.5 Write integration test for OpenAI provider
   - Create test that calls real OpenAI API (mark with #[ignore])
   - Verify successful message sending and response parsing
   - Test error handling for invalid API key
