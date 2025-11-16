@@ -190,7 +190,7 @@ This implementation plan provides a series of prompts for implementing the AI ag
   - Add module documentation
   - _Requirements: 3.1, 3.2_
 
-- [ ]* 5.6 Write integration test for Anthropic provider
+- [x] 5.6 Write integration test for Anthropic provider
   - Create test that calls real Anthropic API (mark with #[ignore])
   - Verify successful message sending and response parsing
   - Test system message handling
