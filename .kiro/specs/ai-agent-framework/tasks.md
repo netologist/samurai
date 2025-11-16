@@ -235,7 +235,7 @@ This implementation plan provides a series of prompts for implementing the AI ag
   - Add module documentation
   - _Requirements: 4.1, 4.4_
 
-- [ ]* 6.7 Write unit tests for memory system
+- [x] 6.7 Write unit tests for memory system
   - Test message storage and retrieval
   - Test get_recent with various limits
   - Test get_within_budget with different token budgets

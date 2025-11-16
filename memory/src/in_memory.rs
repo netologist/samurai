@@ -144,6 +144,49 @@ mod tests {
     }
     
     #[test]
+    fn test_get_recent_zero_limit() {
+        let mut store = InMemoryStore::new();
+        
+        let msg = Message {
+            role: Role::User,
+            content: "Test message".to_string(),
+            timestamp: Utc::now(),
+        };
+        
+        store.add_message(msg);
+        
+        let recent = store.get_recent(0);
+        assert_eq!(recent.len(), 0);
+    }
+    
+    #[test]
+    fn test_get_recent_empty_store() {
+        let store = InMemoryStore::new();
+        
+        let recent = store.get_recent(10);
+        assert_eq!(recent.len(), 0);
+    }
+    
+    #[test]
+    fn test_get_recent_all_messages() {
+        let mut store = InMemoryStore::new();
+        
+        for i in 0..5 {
+            let msg = Message {
+                role: Role::User,
+                content: format!("Message {}", i),
+                timestamp: Utc::now(),
+            };
+            store.add_message(msg);
+        }
+        
+        let recent = store.get_recent(5);
+        assert_eq!(recent.len(), 5);
+        assert_eq!(recent[0].content, "Message 0");
+        assert_eq!(recent[4].content, "Message 4");
+    }
+    
+    #[test]
     fn test_get_within_budget() {
         let mut store = InMemoryStore::new();
         
@@ -181,6 +224,55 @@ mod tests {
     }
     
     #[test]
+    fn test_get_within_budget_zero() {
+        let mut store = InMemoryStore::new();
+        
+        let msg = Message {
+            role: Role::User,
+            content: "Test message".to_string(),
+            timestamp: Utc::now(),
+        };
+        
+        store.add_message(msg);
+        
+        let within_budget = store.get_within_budget(0);
+        assert_eq!(within_budget.len(), 0);
+    }
+    
+    #[test]
+    fn test_get_within_budget_empty_store() {
+        let store = InMemoryStore::new();
+        
+        let within_budget = store.get_within_budget(100);
+        assert_eq!(within_budget.len(), 0);
+    }
+    
+    #[test]
+    fn test_get_within_budget_exact_fit() {
+        let mut store = InMemoryStore::new();
+        
+        let msg1 = Message {
+            role: Role::User,
+            content: "First".to_string(),
+            timestamp: Utc::now(),
+        };
+        let msg2 = Message {
+            role: Role::User,
+            content: "Second".to_string(),
+            timestamp: Utc::now(),
+        };
+        
+        store.add_message(msg1.clone());
+        store.add_message(msg2.clone());
+        
+        // Calculate exact token count for both messages
+        let token_count = count_tokens(&msg1) + count_tokens(&msg2);
+        
+        let within_budget = store.get_within_budget(token_count);
+        assert_eq!(within_budget.len(), 2);
+    }
+    
+    #[test]
     fn test_clear() {
         let mut store = InMemoryStore::new();
         
@@ -195,5 +287,78 @@ mod tests {
         
         store.clear();
         assert_eq!(store.get_recent(10).len(), 0);
+    }
+    
+    #[test]
+    fn test_clear_multiple_times() {
+        let mut store = InMemoryStore::new();
+        
+        let msg = Message {
+            role: Role::User,
+            content: "Test message".to_string(),
+            timestamp: Utc::now(),
+        };
+        
+        store.add_message(msg.clone());
+        store.clear();
+        store.clear(); // Clear again on empty store
+        
+        assert_eq!(store.get_recent(10).len(), 0);
+        
+        // Add message after clearing
+        store.add_message(msg);
+        assert_eq!(store.get_recent(10).len(), 1);
+    }
+    
+    #[test]
+    fn test_message_storage_order() {
+        let mut store = InMemoryStore::new();
+        
+        for i in 0..10 {
+            let msg = Message {
+                role: Role::User,
+                content: format!("Message {}", i),
+                timestamp: Utc::now(),
+            };
+            store.add_message(msg);
+        }
+        
+        let all_messages = store.get_recent(10);
+        
+        // Verify messages are in chronological order
+        for (i, msg) in all_messages.iter().enumerate() {
+            assert_eq!(msg.content, format!("Message {}", i));
+        }
+    }
+    
+    #[test]
+    fn test_different_roles() {
+        let mut store = InMemoryStore::new();
+        
+        let system_msg = Message {
+            role: Role::System,
+            content: "System message".to_string(),
+            timestamp: Utc::now(),
+        };
+        let user_msg = Message {
+            role: Role::User,
+            content: "User message".to_string(),
+            timestamp: Utc::now(),
+        };
+        let assistant_msg = Message {
+            role: Role::Assistant,
+            content: "Assistant message".to_string(),
+            timestamp: Utc::now(),
+        };
+        
+        store.add_message(system_msg.clone());
+        store.add_message(user_msg.clone());
+        store.add_message(assistant_msg.clone());
+        
+        let recent = store.get_recent(3);
+        assert_eq!(recent.len(), 3);
+        assert!(matches!(recent[0].role, Role::System));
+        assert!(matches!(recent[1].role, Role::User));
+        assert!(matches!(recent[2].role, Role::Assistant));
     }
 }
