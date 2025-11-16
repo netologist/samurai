@@ -452,7 +452,7 @@ This implementation plan provides a series of prompts for implementing the AI ag
   - Add module documentation
   - _Requirements: 8.1, 8.2_
 
-- [ ]* 10.6 Write unit tests for guardrails
+- [x] 10.6 Write unit tests for guardrails
   - Test FilePathGuardrail with allowed and disallowed paths
   - Test RateLimitGuardrail with plans under and over limit
   - Test GuardrailRegistry validates all registered guardrails
