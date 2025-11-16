@@ -203,3 +203,522 @@ impl Planner {
         Ok(())
     }
 }
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+    use crate::types::ToolCall;
+    use async_trait::async_trait;
+    
+    /// Mock LLM provider for testing
+    struct MockLLM {
+        responses: Vec<String>,
+        call_index: std::sync::Arc<std::sync::Mutex<usize>>,
+    }
+    
+    impl MockLLM {
+        fn new(responses: Vec<String>) -> Self {
+            Self {
+                responses,
+                call_index: std::sync::Arc::new(std::sync::Mutex::new(0)),
+            }
+        }
+    }
+    
+    #[async_trait]
+    impl llm::LLMProvider for MockLLM {
+        async fn send_message(&self, _messages: &[Message]) -> Result<String> {
+            let mut index = self.call_index.lock().unwrap();
+            let response = self.responses.get(*index)
+                .ok_or_else(|| agent_core::AgentError::LLMProvider(
+                    format!("No response available for call {}", *index)
+                ))?
+                .clone();
+            *index += 1;
+            Ok(response)
+        }
+    }
+    
+    /// Mock memory store for testing
+    struct MockMemoryStore {
+        messages: Vec<Message>,
+    }
+    
+    impl MockMemoryStore {
+        fn new() -> Self {
+            Self {
+                messages: Vec::new(),
+            }
+        }
+    }
+    
+    impl memory::MemoryStore for MockMemoryStore {
+        fn add_message(&mut self, message: Message) {
+            self.messages.push(message);
+        }
+        
+        fn get_recent(&self, limit: usize) -> Vec<Message> {
+            self.messages.iter()
+                .rev()
+                .take(limit)
+                .rev()
+                .cloned()
+                .collect()
+        }
+        
+        fn get_within_budget(&self, _token_budget: usize) -> Vec<Message> {
+            self.messages.clone()
+        }
+        
+        fn clear(&mut self) {
+            self.messages.clear();
+        }
+    }
+    
+    #[test]
+    fn test_parse_plan_with_valid_json() {
+        // Test parsing a valid JSON plan response
+        let planner = create_test_planner(vec![]);
+        
+        let json_response = r#"{
+            "reasoning": "This is a test plan",
+            "steps": [
+                {
+                    "type": "tool_call",
+                    "tool_name": "calculator",
+                    "parameters": {
+                        "operation": "add",
+                        "a": 5,
+                        "b": 3
+                    }
+                },
+                {
+                    "type": "reasoning",
+                    "text": "The calculation gives us 8"
+                },
+                {
+                    "type": "response",
+                    "text": "The answer is 8"
+                }
+            ]
+        }"#;
+        
+        let plan = planner.parse_plan(json_response)
+            .expect("Should parse valid JSON");
+        
+        assert_eq!(plan.reasoning, "This is a test plan");
+        assert_eq!(plan.steps.len(), 3);
+        
+        // Verify first step is a tool call
+        match &plan.steps[0] {
+            Step::ToolCall(tool_call) => {
+                assert_eq!(tool_call.tool_name, "calculator");
+                assert_eq!(tool_call.parameters["operation"], "add");
+                assert_eq!(tool_call.parameters["a"], 5);
+                assert_eq!(tool_call.parameters["b"], 3);
+            }
+            _ => panic!("First step should be a tool call"),
+        }
+        
+        // Verify second step is reasoning
+        match &plan.steps[1] {
+            Step::Reasoning { text } => {
+                assert_eq!(text, "The calculation gives us 8");
+            }
+            _ => panic!("Second step should be reasoning"),
+        }
+        
+        // Verify third step is response
+        match &plan.steps[2] {
+            Step::Response { text } => {
+                assert_eq!(text, "The answer is 8");
+            }
+            _ => panic!("Third step should be response"),
+        }
+    }
+    
+    #[test]
+    fn test_parse_plan_with_json_wrapped_in_text() {
+        // Test that the planner can extract JSON from responses with extra text
+        let planner = create_test_planner(vec![]);
+        
+        let response_with_extra_text = r#"
+        Here's the plan I've created:
+        
+        {
+            "reasoning": "Simple plan",
+            "steps": [
+                {
+                    "type": "response",
+                    "text": "Done"
+                }
+            ]
+        }
+        
+        I hope this helps!
+        "#;
+        
+        let plan = planner.parse_plan(response_with_extra_text)
+            .expect("Should extract and parse JSON from text");
+        
+        assert_eq!(plan.reasoning, "Simple plan");
+        assert_eq!(plan.steps.len(), 1);
+    }
+    
+    #[test]
+    fn test_parse_plan_with_malformed_json() {
+        // Test that parsing fails gracefully with malformed JSON
+        let planner = create_test_planner(vec![]);
+        
+        let malformed_json = "This is not valid JSON at all";
+        
+        let result = planner.parse_plan(malformed_json);
+        assert!(result.is_err(), "Should fail with malformed JSON");
+        
+        let error = result.unwrap_err();
+        let error_msg = error.to_string();
+        assert!(error_msg.contains("JSON") || error_msg.contains("parse"),
+                "Error should mention JSON or parsing: {}", error_msg);
+    }
+    
+    #[test]
+    fn test_parse_plan_with_missing_fields() {
+        // Test parsing JSON that's missing required fields
+        let planner = create_test_planner(vec![]);
+        
+        let incomplete_json = r#"{
+            "reasoning": "Missing steps field"
+        }"#;
+        
+        let result = planner.parse_plan(incomplete_json);
+        assert!(result.is_err(), "Should fail with missing fields");
+    }
+    
+    #[test]
+    fn test_validate_plan_with_valid_tools() {
+        // Test that validation succeeds when all tools exist
+        let planner = create_test_planner(vec![]);
+        
+        let mut registry = ToolRegistry::new();
+        registry.register(Box::new(tools::Calculator::new()));
+        
+        let plan = Plan::new(
+            vec![
+                Step::ToolCall(ToolCall::new(
+                    "calculator".to_string(),
+                    json!({"operation": "add", "a": 1, "b": 2})
+                )),
+                Step::Response { text: "Result is 3".to_string() },
+            ],
+            "Test plan".to_string(),
+        );
+        
+        let result = planner.validate_plan(&plan, &registry);
+        assert!(result.is_ok(), "Validation should succeed with valid tools");
+    }
+    
+    #[test]
+    fn test_validate_plan_with_invalid_tool() {
+        // Test that validation fails when a tool doesn't exist
+        let planner = create_test_planner(vec![]);
+        
+        let mut registry = ToolRegistry::new();
+        registry.register(Box::new(tools::Calculator::new()));
+        
+        let plan = Plan::new(
+            vec![
+                Step::ToolCall(ToolCall::new(
+                    "nonexistent_tool".to_string(),
+                    json!({})
+                )),
+            ],
+            "Test plan with invalid tool".to_string(),
+        );
+        
+        let result = planner.validate_plan(&plan, &registry);
+        assert!(result.is_err(), "Validation should fail with unknown tool");
+        
+        let error = result.unwrap_err();
+        let error_msg = error.to_string();
+        assert!(error_msg.contains("nonexistent_tool"),
+                "Error should mention the unknown tool: {}", error_msg);
+        assert!(error_msg.contains("calculator"),
+                "Error should list available tools: {}", error_msg);
+    }
+    
+    #[test]
+    fn test_validate_plan_with_multiple_invalid_tools() {
+        // Test validation with multiple invalid tool references
+        let planner = create_test_planner(vec![]);
+        
+        let registry = ToolRegistry::new(); // Empty registry
+        
+        let plan = Plan::new(
+            vec![
+                Step::ToolCall(ToolCall::new(
+                    "tool1".to_string(),
+                    json!({})
+                )),
+                Step::ToolCall(ToolCall::new(
+                    "tool2".to_string(),
+                    json!({})
+                )),
+            ],
+            "Test plan".to_string(),
+        );
+        
+        let result = planner.validate_plan(&plan, &registry);
+        assert!(result.is_err(), "Validation should fail on first invalid tool");
+        
+        // Should fail on the first invalid tool
+        let error = result.unwrap_err();
+        let error_msg = error.to_string();
+        assert!(error_msg.contains("tool1"),
+                "Error should mention the first invalid tool: {}", error_msg);
+    }
+    
+    #[test]
+    fn test_validate_plan_without_tool_calls() {
+        // Test that validation succeeds for plans with no tool calls
+        let planner = create_test_planner(vec![]);
+        
+        let registry = ToolRegistry::new(); // Empty registry
+        
+        let plan = Plan::new(
+            vec![
+                Step::Reasoning { text: "Thinking...".to_string() },
+                Step::Response { text: "Answer".to_string() },
+            ],
+            "Plan without tools".to_string(),
+        );
+        
+        let result = planner.validate_plan(&plan, &registry);
+        assert!(result.is_ok(), "Validation should succeed without tool calls");
+    }
+    
+    #[test]
+    fn test_build_system_prompt_with_no_tools() {
+        // Test system prompt generation when no tools are available
+        let planner = create_test_planner(vec![]);
+        
+        let tools: Vec<ToolInfo> = vec![];
+        let prompt = planner.build_system_prompt(&tools);
+        
+        // Verify prompt contains basic instructions
+        assert!(prompt.contains("planning assistant"),
+                "Prompt should identify role");
+        assert!(prompt.contains("JSON"),
+                "Prompt should mention JSON format");
+        assert!(prompt.contains("No tools are available"),
+                "Prompt should indicate no tools");
+        assert!(prompt.contains("reasoning") && prompt.contains("response"),
+                "Prompt should mention available step types");
+    }
+    
+    #[test]
+    fn test_build_system_prompt_with_single_tool() {
+        // Test system prompt generation with one tool
+        let planner = create_test_planner(vec![]);
+        
+        let tools = vec![
+            ToolInfo {
+                name: "calculator".to_string(),
+                description: "Performs arithmetic operations".to_string(),
+                parameters_schema: json!({
+                    "type": "object",
+                    "properties": {
+                        "operation": {"type": "string"},
+                        "a": {"type": "number"},
+                        "b": {"type": "number"}
+                    }
+                }),
+            }
+        ];
+        
+        let prompt = planner.build_system_prompt(&tools);
+        
+        // Verify prompt includes tool information
+        assert!(prompt.contains("calculator"),
+                "Prompt should include tool name");
+        assert!(prompt.contains("arithmetic operations"),
+                "Prompt should include tool description");
+        assert!(prompt.contains("parameters_schema") || prompt.contains("operation"),
+                "Prompt should include parameter schema");
+        assert!(prompt.contains("Available tools"),
+                "Prompt should have tools section");
+    }
+    
+    #[test]
+    fn test_build_system_prompt_with_multiple_tools() {
+        // Test system prompt generation with multiple tools
+        let planner = create_test_planner(vec![]);
+        
+        let tools = vec![
+            ToolInfo {
+                name: "calculator".to_string(),
+                description: "Math operations".to_string(),
+                parameters_schema: json!({"type": "object"}),
+            },
+            ToolInfo {
+                name: "file_reader".to_string(),
+                description: "Read files".to_string(),
+                parameters_schema: json!({"type": "object"}),
+            },
+            ToolInfo {
+                name: "web_search".to_string(),
+                description: "Search the web".to_string(),
+                parameters_schema: json!({"type": "object"}),
+            },
+        ];
+        
+        let prompt = planner.build_system_prompt(&tools);
+        
+        // Verify all tools are included
+        assert!(prompt.contains("calculator"), "Should include calculator");
+        assert!(prompt.contains("file_reader"), "Should include file_reader");
+        assert!(prompt.contains("web_search"), "Should include web_search");
+        
+        // Verify all descriptions are included
+        assert!(prompt.contains("Math operations"), "Should include calculator description");
+        assert!(prompt.contains("Read files"), "Should include file_reader description");
+        assert!(prompt.contains("Search the web"), "Should include web_search description");
+    }
+    
+    #[test]
+    fn test_build_system_prompt_includes_guidelines() {
+        // Test that system prompt includes planning guidelines
+        let planner = create_test_planner(vec![]);
+        
+        let tools = vec![];
+        let prompt = planner.build_system_prompt(&tools);
+        
+        // Verify guidelines are present
+        assert!(prompt.contains("Guidelines"),
+                "Prompt should have guidelines section");
+        assert!(prompt.contains("sequential"),
+                "Should mention sequential execution");
+        assert!(prompt.contains("tool names match"),
+                "Should mention tool name matching");
+        assert!(prompt.contains("valid JSON"),
+                "Should emphasize JSON format");
+    }
+    
+    #[tokio::test]
+    async fn test_create_plan_with_mock_llm() {
+        // Test end-to-end plan creation with mocked LLM
+        let plan_json = r#"{
+            "reasoning": "Use calculator to add numbers",
+            "steps": [
+                {
+                    "type": "tool_call",
+                    "tool_name": "calculator",
+                    "parameters": {"operation": "add", "a": 10, "b": 20}
+                },
+                {
+                    "type": "response",
+                    "text": "The sum is 30"
+                }
+            ]
+        }"#;
+        
+        let planner = create_test_planner(vec![plan_json.to_string()]);
+        
+        let tools = vec![
+            ToolInfo {
+                name: "calculator".to_string(),
+                description: "Math operations".to_string(),
+                parameters_schema: json!({"type": "object"}),
+            }
+        ];
+        
+        let plan = planner.create_plan("What is 10 + 20?", &tools)
+            .await
+            .expect("Should create plan successfully");
+        
+        assert_eq!(plan.reasoning, "Use calculator to add numbers");
+        assert_eq!(plan.steps.len(), 2);
+        
+        // Verify tool call
+        match &plan.steps[0] {
+            Step::ToolCall(tool_call) => {
+                assert_eq!(tool_call.tool_name, "calculator");
+                assert_eq!(tool_call.parameters["operation"], "add");
+                assert_eq!(tool_call.parameters["a"], 10);
+                assert_eq!(tool_call.parameters["b"], 20);
+            }
+            _ => panic!("First step should be tool call"),
+        }
+    }
+    
+    #[tokio::test]
+    async fn test_create_plan_with_llm_error() {
+        // Test that plan creation handles LLM errors gracefully
+        let planner = create_test_planner(vec![]); // No responses available
+        
+        let tools = vec![];
+        
+        let result = planner.create_plan("Test query", &tools).await;
+        assert!(result.is_err(), "Should fail when LLM has no response");
+    }
+    
+    #[test]
+    fn test_extract_json_with_pure_json() {
+        // Test JSON extraction when response is pure JSON
+        let planner = create_test_planner(vec![]);
+        
+        let json = r#"{"key": "value"}"#;
+        let extracted = planner.extract_json(json)
+            .expect("Should extract pure JSON");
+        
+        assert_eq!(extracted, json);
+    }
+    
+    #[test]
+    fn test_extract_json_with_whitespace() {
+        // Test JSON extraction with surrounding whitespace
+        let planner = create_test_planner(vec![]);
+        
+        let json_with_whitespace = "  \n  {\"key\": \"value\"}  \n  ";
+        let extracted = planner.extract_json(json_with_whitespace)
+            .expect("Should extract JSON with whitespace");
+        
+        assert_eq!(extracted, r#"{"key": "value"}"#);
+    }
+    
+    #[test]
+    fn test_extract_json_with_surrounding_text() {
+        // Test JSON extraction when embedded in text
+        let planner = create_test_planner(vec![]);
+        
+        let text_with_json = "Here is the plan: {\"key\": \"value\"} Hope this helps!";
+        let extracted = planner.extract_json(text_with_json)
+            .expect("Should extract JSON from text");
+        
+        assert_eq!(extracted, r#"{"key": "value"}"#);
+    }
+    
+    #[test]
+    fn test_extract_json_with_no_json() {
+        // Test that extraction fails when no JSON is present
+        let planner = create_test_planner(vec![]);
+        
+        let no_json = "This text has no JSON in it";
+        let result = planner.extract_json(no_json);
+        
+        assert!(result.is_err(), "Should fail when no JSON present");
+        
+        let error = result.unwrap_err();
+        let error_msg = error.to_string();
+        assert!(error_msg.contains("JSON"),
+                "Error should mention JSON: {}", error_msg);
+    }
+    
+    // Helper function to create a test planner
+    fn create_test_planner(responses: Vec<String>) -> Planner {
+        let mock_llm = Box::new(MockLLM::new(responses));
+        let mock_memory = Box::new(MockMemoryStore::new());
+        Planner::new(mock_llm, mock_memory)
+    }
+}
