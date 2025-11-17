@@ -35,6 +35,8 @@ dependencies = [
  "memory",
  "planner",
  "rustyline",
+ "serde_json",
+ "tempfile",
  "tokio",
  "tools",
 ]
