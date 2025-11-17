@@ -679,7 +679,7 @@ This implementation plan provides a series of prompts for implementing the AI ag
   - Fix any broken links or formatting issues
   - _Requirements: 12.2_
 
-- [ ] 14.8 Create CONTRIBUTING.md
+- [x] 14.8 Create CONTRIBUTING.md
   - Document how to extend the framework
   - Explain how to add new LLM providers
   - Explain how to create custom tools
