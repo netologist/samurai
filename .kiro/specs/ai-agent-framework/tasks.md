@@ -649,7 +649,7 @@ This implementation plan provides a series of prompts for implementing the AI ag
   - Test result storage in memory
   - _Requirements: 11.5_
 
-- [ ] 14.4 Write guardrails integration test
+- [x] 14.4 Write guardrails integration test
   - Create `tests/guardrails_integration.rs`
   - Test that guardrails prevent invalid plans from executing
   - Verify FilePathGuardrail blocks unauthorized file access
