@@ -43,6 +43,9 @@ pub struct LLMConfig {
     pub model: String,
     /// API key for authentication
     pub api_key: String,
+    /// Base URL for the API
+    #[serde(default)]
+    pub base_url: Option<String>,
     /// Temperature for response generation (0.0 to 2.0)
     #[serde(default = "default_temperature")]
     pub temperature: f32,
@@ -247,9 +250,16 @@ pub fn from_env() -> Result<AgentConfig> {
 
     Ok(AgentConfig {
         llm: LLMConfig {
-            provider,
+            provider: provider.clone(),
             model,
             api_key,
+            base_url: Some(
+                match provider.as_str() {
+                    "openai" => "https://api.openai.com/v1".to_string(),
+                    "anthropic" => "https://api.anthropic.com/v1".to_string(),
+                    _ => "".to_string(),
+                },
+            ),
             temperature,
             max_tokens,
         },
@@ -500,6 +510,7 @@ guardrails:
                 provider: "openai".to_string(),
                 model: "gpt-3.5-turbo".to_string(),
                 api_key: "file-key".to_string(),
+                base_url: None,
                 temperature: 0.5,
                 max_tokens: 1000,
             },
@@ -516,6 +527,7 @@ guardrails:
                 provider: "anthropic".to_string(),
                 model: "claude-3".to_string(),
                 api_key: "env-key".to_string(),
+                base_url: None,
                 temperature: 0.9,
                 max_tokens: 2000,
             },
@@ -550,6 +562,7 @@ guardrails:
                 provider: "openai".to_string(),
                 model: "gpt-4".to_string(),
                 api_key: "test-key".to_string(),
+                base_url: None,
                 temperature: 0.7,
                 max_tokens: 2000,
             },
@@ -571,6 +584,7 @@ guardrails:
                 provider: "openai".to_string(),
                 model: "gpt-4".to_string(),
                 api_key: "".to_string(),
+                base_url: None,
                 temperature: 0.7,
                 max_tokens: 2000,
             },
@@ -594,6 +608,7 @@ guardrails:
                 provider: "".to_string(),
                 model: "gpt-4".to_string(),
                 api_key: "test-key".to_string(),
+                base_url: None,
                 temperature: 0.7,
                 max_tokens: 2000,
             },
@@ -617,6 +632,7 @@ guardrails:
                 provider: "openai".to_string(),
                 model: "gpt-4".to_string(),
                 api_key: "test-key".to_string(),
+                base_url: None,
                 temperature: 3.0,
                 max_tokens: 2000,
             },
@@ -640,6 +656,7 @@ guardrails:
                 provider: "openai".to_string(),
                 model: "gpt-4".to_string(),
                 api_key: "test-key".to_string(),
+                base_url: None,
                 temperature: 0.7,
                 max_tokens: 0,
             },

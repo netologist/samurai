@@ -27,6 +27,7 @@ fn create_test_config() -> LLMConfig {
         provider: "anthropic".to_string(),
         model: "claude-3-haiku-20240307".to_string(),
         api_key,
+        base_url: None,
         temperature: 0.7,
         max_tokens: 100,
     }
@@ -38,6 +39,7 @@ fn create_invalid_config() -> LLMConfig {
         provider: "anthropic".to_string(),
         model: "claude-3-haiku-20240307".to_string(),
         api_key: "sk-ant-invalid-key-for-testing".to_string(),
+        base_url: None,
         temperature: 0.7,
         max_tokens: 100,
     }

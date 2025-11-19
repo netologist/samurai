@@ -13,6 +13,7 @@ pub use types::{ChatCompletionRequest, ChatCompletionResponse, OpenAIMessage};
 pub struct OpenAIProvider {
     api_key: String,
     model: String,
+    base_url: String,
     temperature: f32,
     max_tokens: usize,
     client: ApiClient,
@@ -30,6 +31,10 @@ impl OpenAIProvider {
         Ok(Self {
             api_key: config.api_key.clone(),
             model: config.model.clone(),
+            base_url: config
+                .base_url
+                .clone()
+                .unwrap_or_else(|| "https://api.openai.com/v1".to_string()),
             temperature: config.temperature,
             max_tokens: config.max_tokens,
             client: ApiClient::new(),
@@ -71,51 +76,19 @@ impl LLMProvider for OpenAIProvider {
             max_tokens: self.max_tokens,
         };
 
-        // Call OpenAI API
-        let url = "https://api.openai.com/v1/chat/completions";
-        
-        // Create a custom client with authorization header
-        let client = reqwest::Client::new();
-        let response = client
-            .post(url)
-            .header("Authorization", format!("Bearer {}", self.api_key))
-            .header("Content-Type", "application/json")
-            .json(&request)
-            .timeout(self.client.timeout())
-            .send()
-            .await
-            .map_err(|e| {
-                if e.is_timeout() {
-                    AgentError::LLMProvider(format!("OpenAI API request timeout: {}", e))
-                } else if e.is_connect() {
-                    AgentError::LLMProvider(format!("OpenAI API connection error: {}", e))
-                } else if e.status() == Some(reqwest::StatusCode::UNAUTHORIZED) {
-                    AgentError::LLMProvider("OpenAI API authentication failed: Invalid API key".to_string())
-                } else if e.status() == Some(reqwest::StatusCode::TOO_MANY_REQUESTS) {
-                    AgentError::LLMProvider("OpenAI API rate limit exceeded".to_string())
-                } else {
-                    AgentError::LLMProvider(format!("OpenAI API request failed: {}", e))
-                }
-            })?;
+        let url = format!("{}/chat/completions", self.base_url);
 
-        // Check for HTTP errors
-        let status = response.status();
-        if !status.is_success() {
-            let error_text = response
-                .text()
-                .await
-                .unwrap_or_else(|_| "Unable to read error response".to_string());
-            
-            return Err(AgentError::LLMProvider(format!(
-                "OpenAI API HTTP {} error: {}",
-                status, error_text
-            )));
-        }
+        let mut headers = reqwest::header::HeaderMap::new();
+        headers.insert(
+            "Authorization",
+            format!("Bearer {}", self.api_key).parse().unwrap(),
+        );
+        headers.insert("Content-Type", "application/json".parse().unwrap());
 
-        // Deserialize the response
-        let completion: ChatCompletionResponse = response.json().await.map_err(|e| {
-            AgentError::LLMProvider(format!("Failed to deserialize OpenAI response: {}", e))
-        })?;
+        let completion: ChatCompletionResponse = self
+            .client
+            .post_json_with_headers(&url, &request, headers)
+            .await?;
 
         // Extract the response text from choices[0].message.content
         completion

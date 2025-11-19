@@ -27,6 +27,7 @@ fn create_test_config() -> LLMConfig {
         provider: "openai".to_string(),
         model: "gpt-3.5-turbo".to_string(),
         api_key,
+        base_url: None,
         temperature: 0.7,
         max_tokens: 100,
     }

@@ -40,9 +40,33 @@ impl ApiClient {
         T: Serialize,
         R: for<'de> Deserialize<'de>,
     {
+        self.post_json_with_headers(url, body, reqwest::header::HeaderMap::new())
+            .await
+    }
+
+    /// Send a JSON POST request with custom headers and deserialize the response
+    ///
+    /// # Arguments
+    /// * `url` - The URL to send the request to
+    /// * `body` - The request body to serialize as JSON
+    /// * `headers` - Custom headers to include in the request
+    ///
+    /// # Returns
+    /// The deserialized response or an error
+    pub async fn post_json_with_headers<T, R>(
+        &self,
+        url: &str,
+        body: &T,
+        headers: reqwest::header::HeaderMap,
+    ) -> Result<R>
+    where
+        T: Serialize,
+        R: for<'de> Deserialize<'de>,
+    {
         let response = self
             .client
             .post(url)
+            .headers(headers)
             .json(body)
             .timeout(self.timeout)
             .send()

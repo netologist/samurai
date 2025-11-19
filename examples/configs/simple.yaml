@@ -16,6 +16,9 @@ llm:
   # Or set directly (not recommended for production): sk-...
   api_key: ${OPENAI_API_KEY}
   
+  # Base URL for the OpenAI API
+  base_url: https://api.openai.com/v1
+  
   # Temperature controls randomness (0.0 to 2.0)
   # - Lower values (0.0-0.3): More focused and deterministic
   # - Medium values (0.4-0.7): Balanced creativity

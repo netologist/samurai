@@ -46,6 +46,7 @@ mod tests {
             provider: "openai".to_string(),
             model: "gpt-4".to_string(),
             api_key: "test-key".to_string(),
+            base_url: None,
             temperature: 0.7,
             max_tokens: 2000,
         };
@@ -60,6 +61,7 @@ mod tests {
             provider: "anthropic".to_string(),
             model: "claude-3-sonnet-20240229".to_string(),
             api_key: "test-key".to_string(),
+            base_url: None,
             temperature: 0.7,
             max_tokens: 2000,
         };
@@ -74,6 +76,7 @@ mod tests {
             provider: "unknown".to_string(),
             model: "some-model".to_string(),
             api_key: "test-key".to_string(),
+            base_url: None,
             temperature: 0.7,
             max_tokens: 2000,
         };

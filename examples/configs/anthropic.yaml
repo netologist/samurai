@@ -15,6 +15,9 @@ llm:
   # Use environment variable for security: ${ANTHROPIC_API_KEY}
   # Or set directly (not recommended for production): sk-ant-...
   api_key: ${ANTHROPIC_API_KEY}
+
+  # Base URL for the Anthropic API
+  base_url: https://api.anthropic.com/v1
   
   # Temperature controls randomness (0.0 to 1.0 for Claude)
   # - Lower values (0.0-0.3): More focused and deterministic

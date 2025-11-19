@@ -24,6 +24,9 @@ llm:
   # Using environment variable for security (set OPENAI_API_KEY)
   api_key: ${OPENAI_API_KEY}
   
+  # Base URL for the OpenAI API
+  base_url: https://api.openai.com/v1
+
   # Temperature: Controls randomness in responses (0.0 to 2.0)
   # 0.3 provides focused, deterministic responses for file operations
   # Lower temperature ensures consistent file analysis

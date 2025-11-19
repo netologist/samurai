@@ -13,6 +13,7 @@ pub use types::{AnthropicMessage, MessagesRequest, MessagesResponse};
 pub struct AnthropicProvider {
     api_key: String,
     model: String,
+    base_url: String,
     temperature: f32,
     max_tokens: usize,
     client: ApiClient,
@@ -30,6 +31,10 @@ impl AnthropicProvider {
         Ok(Self {
             api_key: config.api_key.clone(),
             model: config.model.clone(),
+            base_url: config
+                .base_url
+                .clone()
+                .unwrap_or_else(|| "https://api.anthropic.com/v1".to_string()),
             temperature: config.temperature,
             max_tokens: config.max_tokens,
             client: ApiClient::new(),
@@ -100,52 +105,17 @@ impl LLMProvider for AnthropicProvider {
             max_tokens: self.max_tokens,
         };
 
-        // Call Anthropic API
-        let url = "https://api.anthropic.com/v1/messages";
-        
-        // Create a custom client with required headers
-        let client = reqwest::Client::new();
-        let response = client
-            .post(url)
-            .header("x-api-key", &self.api_key)
-            .header("anthropic-version", "2023-06-01")
-            .header("Content-Type", "application/json")
-            .json(&request)
-            .timeout(self.client.timeout())
-            .send()
-            .await
-            .map_err(|e| {
-                if e.is_timeout() {
-                    AgentError::LLMProvider(format!("Anthropic API request timeout: {}", e))
-                } else if e.is_connect() {
-                    AgentError::LLMProvider(format!("Anthropic API connection error: {}", e))
-                } else if e.status() == Some(reqwest::StatusCode::UNAUTHORIZED) {
-                    AgentError::LLMProvider("Anthropic API authentication failed: Invalid API key".to_string())
-                } else if e.status() == Some(reqwest::StatusCode::TOO_MANY_REQUESTS) {
-                    AgentError::LLMProvider("Anthropic API rate limit exceeded".to_string())
-                } else {
-                    AgentError::LLMProvider(format!("Anthropic API request failed: {}", e))
-                }
-            })?;
+        let url = format!("{}/messages", self.base_url);
 
-        // Check for HTTP errors
-        let status = response.status();
-        if !status.is_success() {
-            let error_text = response
-                .text()
-                .await
-                .unwrap_or_else(|_| "Unable to read error response".to_string());
-            
-            return Err(AgentError::LLMProvider(format!(
-                "Anthropic API HTTP {} error: {}",
-                status, error_text
-            )));
-        }
+        let mut headers = reqwest::header::HeaderMap::new();
+        headers.insert("x-api-key", self.api_key.parse().unwrap());
+        headers.insert("anthropic-version", "2023-06-01".parse().unwrap());
+        headers.insert("Content-Type", "application/json".parse().unwrap());
 
-        // Deserialize the response
-        let messages_response: MessagesResponse = response.json().await.map_err(|e| {
-            AgentError::LLMProvider(format!("Failed to deserialize Anthropic response: {}", e))
-        })?;
+        let messages_response: MessagesResponse = self
+            .client
+            .post_json_with_headers(&url, &request, headers)
+            .await?;
 
         // Extract the response text from content[0].text
         messages_response

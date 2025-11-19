@@ -25,6 +25,9 @@ llm:
   # Using environment variable for security (set OPENAI_API_KEY)
   api_key: ${OPENAI_API_KEY}
   
+  # Base URL for the OpenAI API
+  base_url: https://api.openai.com/v1
+  
   # Temperature: Controls randomness in responses (0.0 to 2.0)
   # 0.5 provides focused, consistent reasoning for research tasks
   # Lower than chatbot to prioritize accuracy over creativity

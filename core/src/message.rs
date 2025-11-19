@@ -80,8 +80,8 @@ mod tests {
     #[test]
     fn test_message_serialization() {
         let msg = Message::user("test");
-        let json = serde_json::to_string(&msg).unwrap();
-        let deserialized: Message = serde_json::from_str(&json).unwrap();
+        let json = serde_json::to_string(&msg).expect("Failed to serialize message");
+        let deserialized: Message = serde_json::from_str(&json).expect("Failed to deserialize message");
         assert_eq!(msg.role, deserialized.role);
         assert_eq!(msg.content, deserialized.content);
     }
