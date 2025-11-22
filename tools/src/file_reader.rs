@@ -1,11 +1,11 @@
-use async_trait::async_trait;
-use agent_core::{AgentError, Result};
-use serde_json::{json, Value};
-use std::fs;
 use crate::tool::Tool;
+use agent_core::{AgentError, Result};
+use async_trait::async_trait;
+use serde_json::{Value, json};
+use std::fs;
 
 /// FileReader tool for reading file contents.
-/// 
+///
 /// Reads the contents of a file from the filesystem and returns it as a string.
 pub struct FileReader;
 
@@ -26,11 +26,11 @@ impl Tool for FileReader {
     fn name(&self) -> &str {
         "file_reader"
     }
-    
+
     fn description(&self) -> &str {
         "Reads the contents of a file from the filesystem"
     }
-    
+
     fn parameters_schema(&self) -> Value {
         json!({
             "type": "object",
@@ -43,7 +43,7 @@ impl Tool for FileReader {
             "required": ["file_path"]
         })
     }
-    
+
     async fn execute(&self, params: Value) -> Result<Value> {
         // Extract file path parameter
         let file_path = params["file_path"]
@@ -52,7 +52,7 @@ impl Tool for FileReader {
                 tool_name: self.name().to_string(),
                 reason: "Missing or invalid 'file_path' parameter".to_string(),
             })?;
-        
+
         // Read file contents
         let contents = fs::read_to_string(file_path).map_err(|e| {
             let reason = match e.kind() {
@@ -66,13 +66,13 @@ impl Tool for FileReader {
                     format!("Failed to read file {}: {}", file_path, e)
                 }
             };
-            
+
             AgentError::ToolExecution {
                 tool_name: self.name().to_string(),
                 reason,
             }
         })?;
-        
+
         Ok(json!({
             "file_path": file_path,
             "contents": contents,
@@ -95,14 +95,14 @@ mod tests {
         let test_content = "Hello, this is test content!";
         temp_file.write_all(test_content.as_bytes()).unwrap();
         temp_file.flush().unwrap();
-        
+
         let file_path = temp_file.path().to_str().unwrap();
-        
+
         let reader = FileReader::new();
         let params = json!({
             "file_path": file_path
         });
-        
+
         let result = reader.execute(params).await.unwrap();
         assert_eq!(result["contents"], test_content);
         assert_eq!(result["file_path"], file_path);
@@ -115,10 +115,10 @@ mod tests {
         let params = json!({
             "file_path": "/nonexistent/path/to/file.txt"
         });
-        
+
         let result = reader.execute(params).await;
         assert!(result.is_err());
-        
+
         if let Err(AgentError::ToolExecution { tool_name, reason }) = result {
             assert_eq!(tool_name, "file_reader");
             assert!(reason.contains("File not found") || reason.contains("not found"));
@@ -132,12 +132,12 @@ mod tests {
         // Create an empty temporary file
         let temp_file = NamedTempFile::new().unwrap();
         let file_path = temp_file.path().to_str().unwrap();
-        
+
         let reader = FileReader::new();
         let params = json!({
             "file_path": file_path
         });
-        
+
         let result = reader.execute(params).await.unwrap();
         assert_eq!(result["contents"], "");
         assert_eq!(result["size"], 0);
@@ -147,10 +147,10 @@ mod tests {
     async fn test_file_reader_missing_parameter() {
         let reader = FileReader::new();
         let params = json!({});
-        
+
         let result = reader.execute(params).await;
         assert!(result.is_err());
-        
+
         if let Err(AgentError::ToolExecution { tool_name, reason }) = result {
             assert_eq!(tool_name, "file_reader");
             assert!(reason.contains("file_path"));
@@ -165,7 +165,7 @@ mod tests {
         let params = json!({
             "file_path": 123  // Should be a string
         });
-        
+
         let result = reader.execute(params).await;
         assert!(result.is_err());
     }
@@ -186,7 +186,7 @@ mod tests {
     fn test_file_reader_parameters_schema() {
         let reader = FileReader::new();
         let schema = reader.parameters_schema();
-        
+
         assert_eq!(schema["type"], "object");
         assert!(schema["properties"]["file_path"].is_object());
         assert!(schema["required"].is_array());

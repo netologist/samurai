@@ -90,7 +90,10 @@ async fn run_chatbot_repl(agent: &mut SimpleAgent) -> Result<()> {
         agent_core::AgentError::Execution(format!("Failed to initialize REPL: {}", e))
     })?;
 
-    println!("{}", "Chatbot REPL - Type your messages and press Enter".bright_green());
+    println!(
+        "{}",
+        "Chatbot REPL - Type your messages and press Enter".bright_green()
+    );
     println!("Commands: 'exit' to quit, 'help' for help");
     println!();
 
@@ -119,7 +122,10 @@ async fn run_chatbot_repl(agent: &mut SimpleAgent) -> Result<()> {
                     "help" => {
                         println!("\n{}", "Available commands:".bright_cyan().bold());
                         println!("  {}  - Exit the chatbot", "exit, quit".bright_yellow());
-                        println!("  {}        - Show this help message", "help".bright_yellow());
+                        println!(
+                            "  {}        - Show this help message",
+                            "help".bright_yellow()
+                        );
                         println!();
                         continue;
                     }

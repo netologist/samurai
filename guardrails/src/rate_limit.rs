@@ -1,8 +1,8 @@
+use crate::Guardrail;
 use agent_core::{AgentError, Result};
 use planner::{Plan, Step};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
-use crate::Guardrail;
 
 /// Guardrail that enforces rate limits on tool calls.
 ///
@@ -75,6 +75,7 @@ impl RateLimitGuardrail {
     /// # Arguments
     ///
     /// * `count` - Number of tool calls to record
+    #[allow(dead_code)] // Utility method for potential future use
     fn record_calls(&self, count: usize) {
         let mut history = self.call_history.lock().unwrap();
         let now = Instant::now();
@@ -88,6 +89,7 @@ impl RateLimitGuardrail {
     /// # Returns
     ///
     /// The number of tool calls made in the last 60 seconds.
+    #[allow(dead_code)] // Utility method for potential future use
     fn current_call_count(&self) -> usize {
         let mut history = self.call_history.lock().unwrap();
         self.cleanup_old_calls(&mut history);
@@ -102,15 +104,15 @@ impl Guardrail for RateLimitGuardrail {
 
     fn validate(&self, plan: &Plan) -> Result<()> {
         let tool_calls_in_plan = self.count_tool_calls(plan);
-        
+
         // Get current call count and clean up old entries
         let mut history = self.call_history.lock().unwrap();
         self.cleanup_old_calls(&mut history);
         let current_calls = history.len();
-        
+
         // Check if adding these calls would exceed the limit
         let total_calls = current_calls + tool_calls_in_plan;
-        
+
         if total_calls > self.max_calls_per_minute {
             return Err(AgentError::GuardrailViolation(format!(
                 "Rate limit exceeded: plan contains {} tool calls, but only {} calls remaining in current minute (limit: {} per minute, current: {})",

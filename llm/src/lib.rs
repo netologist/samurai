@@ -1,10 +1,10 @@
 //! LLM Provider Interface
-//! 
+//!
 //! This crate provides a unified interface for interacting with different
 //! Large Language Model providers (OpenAI, Anthropic, etc.).
 //!
 //! # Supported Providers
-//! 
+//!
 //! - **OpenAI**: GPT-3.5, GPT-4, and other OpenAI models
 //! - **Anthropic**: Claude models (Claude 3 Sonnet, Opus, etc.)
 //!
@@ -22,6 +22,7 @@
 //!     provider: "openai".to_string(),
 //!     model: "gpt-4".to_string(),
 //!     api_key: "your-api-key".to_string(),
+//!     base_url: None,
 //!     temperature: 0.7,
 //!     max_tokens: 2000,
 //! };
@@ -31,10 +32,10 @@
 //! # }
 //! ```
 
-mod provider;
+pub mod anthropic;
 mod factory;
 pub mod openai;
-pub mod anthropic;
+mod provider;
 
 pub use anthropic::AnthropicProvider;
 pub use factory::create_provider;

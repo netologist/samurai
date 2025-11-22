@@ -42,7 +42,7 @@ impl AnthropicProvider {
     }
 
     /// Convert framework Message to Anthropic message format
-    /// 
+    ///
     /// Note: System messages are handled separately and should not be
     /// included in the messages array
     fn convert_message(message: &Message) -> Option<types::AnthropicMessage> {
@@ -60,7 +60,7 @@ impl AnthropicProvider {
     }
 
     /// Convert multiple framework messages to Anthropic format
-    /// 
+    ///
     /// Separates system messages from user/assistant messages.
     /// Returns (system_message, messages_array)
     fn convert_messages(messages: &[Message]) -> (Option<String>, Vec<types::AnthropicMessage>) {
@@ -108,9 +108,24 @@ impl LLMProvider for AnthropicProvider {
         let url = format!("{}/messages", self.base_url);
 
         let mut headers = reqwest::header::HeaderMap::new();
-        headers.insert("x-api-key", self.api_key.parse().unwrap());
-        headers.insert("anthropic-version", "2023-06-01".parse().unwrap());
-        headers.insert("Content-Type", "application/json".parse().unwrap());
+        headers.insert(
+            "x-api-key",
+            self.api_key
+                .parse()
+                .map_err(|e| AgentError::LLMProvider(format!("Invalid API key format: {}", e)))?,
+        );
+        headers.insert(
+            "anthropic-version",
+            "2023-06-01"
+                .parse()
+                .map_err(|e| AgentError::LLMProvider(format!("Invalid header value: {}", e)))?,
+        );
+        headers.insert(
+            "Content-Type",
+            "application/json"
+                .parse()
+                .map_err(|e| AgentError::LLMProvider(format!("Invalid header value: {}", e)))?,
+        );
 
         let messages_response: MessagesResponse = self
             .client

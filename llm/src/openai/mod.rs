@@ -61,7 +61,6 @@ impl OpenAIProvider {
     }
 }
 
-
 #[async_trait]
 impl LLMProvider for OpenAIProvider {
     async fn send_message(&self, messages: &[Message]) -> Result<String> {
@@ -81,9 +80,18 @@ impl LLMProvider for OpenAIProvider {
         let mut headers = reqwest::header::HeaderMap::new();
         headers.insert(
             "Authorization",
-            format!("Bearer {}", self.api_key).parse().unwrap(),
+            format!("Bearer {}", self.api_key)
+                .parse()
+                .map_err(|e| {
+                    AgentError::LLMProvider(format!("Invalid API key format: {}", e))
+                })?,
         );
-        headers.insert("Content-Type", "application/json".parse().unwrap());
+        headers.insert(
+            "Content-Type",
+            "application/json"
+                .parse()
+                .map_err(|e| AgentError::LLMProvider(format!("Invalid header value: {}", e)))?,
+        );
 
         let completion: ChatCompletionResponse = self
             .client

@@ -1,7 +1,7 @@
 use agent_core::{AgentError, Result};
 use config::LLMConfig;
 
-use crate::{anthropic::AnthropicProvider, openai::OpenAIProvider, LLMProvider};
+use crate::{LLMProvider, anthropic::AnthropicProvider, openai::OpenAIProvider};
 
 /// Create an LLM provider instance from configuration
 ///
@@ -83,7 +83,7 @@ mod tests {
 
         let result = create_provider(&config);
         assert!(result.is_err());
-        
+
         if let Err(err) = result {
             assert!(err.to_string().contains("Unknown LLM provider"));
             assert!(err.to_string().contains("unknown"));

@@ -9,8 +9,9 @@ use std::path::PathBuf;
 #[command(about = "Educational AI Agent Framework", long_about = None)]
 pub struct CliArgs {
     /// Path to configuration file (YAML format)
+    /// If not provided, will search in standard locations
     #[arg(short, long)]
-    pub config: PathBuf,
+    pub config: Option<PathBuf>,
 
     /// Run in single-turn mode with this query (omit for REPL mode)
     #[arg(short, long)]

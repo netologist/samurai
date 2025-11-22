@@ -29,17 +29,17 @@ use tiktoken_rs::cl100k_base;
 /// ```
 pub fn count_tokens(message: &Message) -> usize {
     let bpe = cl100k_base().expect("Failed to load cl100k_base encoding");
-    
+
     // Count tokens for role prefix (approximate)
     let role_tokens = match message.role {
-        agent_core::Role::System => 4,   // "system: "
-        agent_core::Role::User => 4,     // "user: "
+        agent_core::Role::System => 4,    // "system: "
+        agent_core::Role::User => 4,      // "user: "
         agent_core::Role::Assistant => 4, // "assistant: "
     };
-    
+
     // Count tokens in the content
     let content_tokens = bpe.encode_with_special_tokens(&message.content).len();
-    
+
     role_tokens + content_tokens
 }
 
@@ -47,7 +47,7 @@ pub fn count_tokens(message: &Message) -> usize {
 mod tests {
     use super::*;
     use agent_core::{Message, Role};
-    
+
     #[test]
     fn test_count_tokens_simple() {
         let message = Message {
@@ -55,12 +55,12 @@ mod tests {
             content: "Hello, world!".to_string(),
             timestamp: chrono::Utc::now(),
         };
-        
+
         let count = count_tokens(&message);
         // Should be more than 0
         assert!(count > 0);
     }
-    
+
     #[test]
     fn test_count_tokens_longer_message() {
         let message = Message {
@@ -68,7 +68,7 @@ mod tests {
             content: "This is a longer message with more words to count tokens for.".to_string(),
             timestamp: chrono::Utc::now(),
         };
-        
+
         let count = count_tokens(&message);
         // Longer message should have more tokens
         assert!(count > 10);

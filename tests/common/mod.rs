@@ -67,7 +67,7 @@ impl MockLLM {
 impl LLMProvider for MockLLM {
     async fn send_message(&self, _messages: &[Message]) -> Result<String> {
         let mut count = self.call_count.lock().unwrap();
-        
+
         // If we have responses, cycle through them
         if !self.responses.is_empty() {
             let response = self.responses[*count % self.responses.len()].clone();
@@ -76,7 +76,7 @@ impl LLMProvider for MockLLM {
         } else {
             *count += 1;
             Err(agent_core::AgentError::LLMProvider(
-                "MockLLM has no responses configured".to_string()
+                "MockLLM has no responses configured".to_string(),
             ))
         }
     }
@@ -238,7 +238,8 @@ pub mod fixtures {
                     "text": "The capital of France is Paris"
                 }
             ]
-        }"#.to_string()
+        }"#
+        .to_string()
     }
 
     /// Creates a plan with an invalid tool reference
@@ -252,7 +253,8 @@ pub mod fixtures {
                     "parameters": {}
                 }
             ]
-        }"#.to_string()
+        }"#
+        .to_string()
     }
 
     /// Creates a plan with file reader tool call
@@ -281,7 +283,7 @@ pub mod fixtures {
     /// Creates a plan with multiple tool calls exceeding rate limits
     pub fn rate_limit_exceeding_plan(num_calls: usize) -> String {
         let mut steps = Vec::new();
-        
+
         for i in 0..num_calls {
             steps.push(format!(
                 r#"{{
@@ -321,12 +323,12 @@ pub mod fixtures {
     /// Creates a long conversation for testing memory limits
     pub fn long_conversation(num_turns: usize) -> Vec<Message> {
         let mut messages = vec![Message::system("You are a helpful assistant.")];
-        
+
         for i in 0..num_turns {
             messages.push(Message::user(format!("Question {}", i)));
             messages.push(Message::assistant(format!("Answer {}", i)));
         }
-        
+
         messages
     }
 }
@@ -383,42 +385,39 @@ mod tests {
     #[tokio::test]
     async fn test_mock_llm_single_response() {
         let mock = MockLLM::with_single_response("test response".to_string());
-        
+
         let messages = vec![Message::user("test")];
         let response = mock.send_message(&messages).await.unwrap();
-        
+
         assert_eq!(response, "test response");
         assert_eq!(mock.call_count(), 1);
     }
 
     #[tokio::test]
     async fn test_mock_llm_multiple_responses() {
-        let mock = MockLLM::new(vec![
-            "first".to_string(),
-            "second".to_string(),
-        ]);
-        
+        let mock = MockLLM::new(vec!["first".to_string(), "second".to_string()]);
+
         let messages = vec![Message::user("test")];
-        
+
         let response1 = mock.send_message(&messages).await.unwrap();
         assert_eq!(response1, "first");
-        
+
         let response2 = mock.send_message(&messages).await.unwrap();
         assert_eq!(response2, "second");
-        
+
         assert_eq!(mock.call_count(), 2);
     }
 
     #[tokio::test]
     async fn test_mock_llm_cycles_responses() {
         let mock = MockLLM::new(vec!["response".to_string()]);
-        
+
         let messages = vec![Message::user("test")];
-        
+
         // Should cycle back to first response
         mock.send_message(&messages).await.unwrap();
         let response = mock.send_message(&messages).await.unwrap();
-        
+
         assert_eq!(response, "response");
         assert_eq!(mock.call_count(), 2);
     }
@@ -426,28 +425,25 @@ mod tests {
     #[test]
     fn test_mock_memory_store() {
         let mut store = MockMemoryStore::new();
-        
+
         assert!(store.is_empty());
         assert_eq!(store.len(), 0);
-        
+
         store.add_message(Message::user("test"));
-        
+
         assert!(!store.is_empty());
         assert_eq!(store.len(), 1);
-        
+
         let messages = store.get_recent(10);
         assert_eq!(messages.len(), 1);
     }
 
     #[test]
     fn test_mock_memory_store_with_initial_messages() {
-        let initial = vec![
-            Message::user("first"),
-            Message::assistant("second"),
-        ];
-        
+        let initial = vec![Message::user("first"), Message::assistant("second")];
+
         let store = MockMemoryStore::with_messages(initial);
-        
+
         assert_eq!(store.len(), 2);
         assert_eq!(store.all_messages().len(), 2);
     }

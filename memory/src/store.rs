@@ -12,13 +12,13 @@ use agent_core::Message;
 pub trait MemoryStore: Send + Sync {
     /// Add a message to the memory store
     fn add_message(&mut self, message: Message);
-    
+
     /// Get the most recent N messages in chronological order
     fn get_recent(&self, limit: usize) -> Vec<Message>;
-    
+
     /// Get messages that fit within a token budget, in chronological order
     fn get_within_budget(&self, token_budget: usize) -> Vec<Message>;
-    
+
     /// Clear all messages from the store
     fn clear(&mut self);
 }

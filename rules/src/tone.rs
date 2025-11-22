@@ -17,7 +17,9 @@ impl Tone {
         match self {
             Tone::Formal => "Use a formal, professional tone. Be polite and respectful.",
             Tone::Casual => "Use a casual, conversational tone. Be friendly and approachable.",
-            Tone::Technical => "Use a technical tone with precise terminology. Be accurate and detailed.",
+            Tone::Technical => {
+                "Use a technical tone with precise terminology. Be accurate and detailed."
+            }
         }
     }
 }
@@ -38,11 +40,11 @@ impl Rule for ToneRule {
     fn name(&self) -> &str {
         "tone"
     }
-    
+
     fn priority(&self) -> u32 {
         50
     }
-    
+
     fn apply(&self, context: &mut PlanningContext) {
         // Append tone guidance to the system prompt
         let guidance = self.tone.guidance();
@@ -59,12 +61,12 @@ mod tests {
     fn test_tone_rule_modifies_system_prompt_formal() {
         let rule = ToneRule::new(Tone::Formal);
         let mut context = PlanningContext::new("You are a helpful assistant.".to_string());
-        
+
         let original_prompt = context.system_prompt.clone();
-        
+
         // Apply the rule
         rule.apply(&mut context);
-        
+
         // System prompt should be modified
         assert_ne!(context.system_prompt, original_prompt);
         assert!(context.system_prompt.contains("formal, professional tone"));
@@ -75,10 +77,12 @@ mod tests {
     fn test_tone_rule_modifies_system_prompt_casual() {
         let rule = ToneRule::new(Tone::Casual);
         let mut context = PlanningContext::new("You are a helpful assistant.".to_string());
-        
+
         rule.apply(&mut context);
-        
-        assert!(context.system_prompt.contains("casual, conversational tone"));
+
+        assert!(context
+            .system_prompt
+            .contains("casual, conversational tone"));
         assert!(context.system_prompt.contains("friendly and approachable"));
     }
 
@@ -86,9 +90,9 @@ mod tests {
     fn test_tone_rule_modifies_system_prompt_technical() {
         let rule = ToneRule::new(Tone::Technical);
         let mut context = PlanningContext::new("You are a helpful assistant.".to_string());
-        
+
         rule.apply(&mut context);
-        
+
         assert!(context.system_prompt.contains("technical tone"));
         assert!(context.system_prompt.contains("precise terminology"));
     }
@@ -110,9 +114,9 @@ mod tests {
         let rule = ToneRule::new(Tone::Formal);
         let original = "You are a helpful assistant.";
         let mut context = PlanningContext::new(original.to_string());
-        
+
         rule.apply(&mut context);
-        
+
         // Original prompt should still be present
         assert!(context.system_prompt.starts_with(original));
     }

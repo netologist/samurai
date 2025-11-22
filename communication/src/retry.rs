@@ -62,9 +62,7 @@ fn should_retry_error(error: &AgentError) -> bool {
     match error {
         AgentError::LLMProvider(msg) => {
             // Retry on network, connection, and timeout errors
-            msg.contains("timeout")
-                || msg.contains("Connection error")
-                || msg.contains("HTTP 5") // 5xx errors
+            msg.contains("timeout") || msg.contains("Connection error") || msg.contains("HTTP 5") // 5xx errors
         }
         // Don't retry on other error types
         _ => false,
@@ -74,8 +72,8 @@ fn should_retry_error(error: &AgentError) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::sync::atomic::{AtomicU32, Ordering};
     use std::sync::Arc;
+    use std::sync::atomic::{AtomicU32, Ordering};
 
     #[tokio::test]
     async fn test_retry_success_on_first_attempt() {
@@ -118,9 +116,7 @@ mod tests {
                 let counter = counter_clone.clone();
                 async move {
                     counter.fetch_add(1, Ordering::SeqCst);
-                    Err::<i32, AgentError>(AgentError::LLMProvider(
-                        "Request timeout".to_string(),
-                    ))
+                    Err::<i32, AgentError>(AgentError::LLMProvider("Request timeout".to_string()))
                 }
             },
             3,
@@ -166,7 +162,9 @@ mod tests {
                 async move {
                     let count = counter.fetch_add(1, Ordering::SeqCst);
                     if count < 1 {
-                        Err(AgentError::LLMProvider("HTTP 503 error: Service Unavailable".to_string()))
+                        Err(AgentError::LLMProvider(
+                            "HTTP 503 error: Service Unavailable".to_string(),
+                        ))
                     } else {
                         Ok(42)
                     }

@@ -6,8 +6,8 @@
 use crate::agent::Agent;
 use agent_core::Result;
 use colored::Colorize;
-use rustyline::error::ReadlineError;
 use rustyline::DefaultEditor;
+use rustyline::error::ReadlineError;
 
 /// Run the agent in REPL (Read-Eval-Print Loop) mode
 ///
@@ -34,7 +34,10 @@ pub async fn run(mut agent: Agent) -> Result<()> {
         agent_core::AgentError::Execution(format!("Failed to initialize REPL: {}", e))
     })?;
 
-    println!("{}", "AI Agent REPL - Interactive Mode".bright_cyan().bold());
+    println!(
+        "{}",
+        "AI Agent REPL - Interactive Mode".bright_cyan().bold()
+    );
     println!("Type your queries and press Enter. Type 'exit' to quit.");
     println!("Type 'history' to show conversation history.");
     println!();
@@ -70,8 +73,14 @@ pub async fn run(mut agent: Agent) -> Result<()> {
                     "help" => {
                         println!("\n{}", "Available commands:".bright_cyan().bold());
                         println!("  {}  - Exit the REPL", "exit, quit".bright_yellow());
-                        println!("  {}     - Show conversation history", "history".bright_yellow());
-                        println!("  {}        - Show this help message", "help".bright_yellow());
+                        println!(
+                            "  {}     - Show conversation history",
+                            "history".bright_yellow()
+                        );
+                        println!(
+                            "  {}        - Show this help message",
+                            "help".bright_yellow()
+                        );
                         println!();
                         continue;
                     }
@@ -93,7 +102,10 @@ pub async fn run(mut agent: Agent) -> Result<()> {
             Err(ReadlineError::Interrupted) => {
                 // Ctrl-C pressed
                 println!("^C");
-                println!("{}", "Use 'exit' or 'quit' to exit the REPL".bright_yellow());
+                println!(
+                    "{}",
+                    "Use 'exit' or 'quit' to exit the REPL".bright_yellow()
+                );
             }
             Err(ReadlineError::Eof) => {
                 // Ctrl-D pressed

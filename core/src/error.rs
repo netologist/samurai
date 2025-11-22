@@ -20,6 +20,14 @@ pub enum AgentError {
         reason: String,
     },
 
+    /// Tool not found
+    #[error("Tool not found: {0}")]
+    ToolNotFound(String),
+
+    /// Invalid parameter
+    #[error("Invalid parameter: {0}")]
+    InvalidParameter(String),
+
     /// Guardrail violation
     #[error("Guardrail violation: {0}")]
     GuardrailViolation(String),

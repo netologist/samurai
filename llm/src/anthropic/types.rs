@@ -14,7 +14,7 @@ pub struct AnthropicMessage {
 }
 
 /// Request structure for Anthropic Messages API.
-/// 
+///
 /// Note: Anthropic separates system messages into a dedicated field
 /// rather than including them in the messages array.
 ///

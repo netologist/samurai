@@ -1,5 +1,5 @@
 [workspace]
-members = [ "cli", "communication", "config","core", "executor", "guardrails", "llm", "memory", "planner", "rules", "tools"]
+members = ["agent", "cli", "communication", "config","core", "executor", "guardrails", "llm", "memory", "planner", "rules", "tools"]
 resolver = "2"
 
 [workspace.dependencies]
@@ -28,6 +28,7 @@ guardrails = { path = "guardrails" }
 tokio = { workspace = true }
 colored = "2.1"
 rustyline = "12.0"
+agent = { version = "0.1.0", path = "agent" }
 
 [dev-dependencies]
 async-trait = "0.1"

@@ -56,10 +56,16 @@ async fn main() -> Result<()> {
 
     // Display allowed paths
     println!("{}", "Allowed file access paths:".bright_yellow().bold());
-    println!("  • Current directory: {}", std::env::current_dir()?.display());
+    println!(
+        "  • Current directory: {}",
+        std::env::current_dir()?.display()
+    );
     println!("  • Examples directory: examples/");
     println!();
-    println!("{}", "Attempts to access files outside these paths will be blocked.".bright_yellow());
+    println!(
+        "{}",
+        "Attempts to access files outside these paths will be blocked.".bright_yellow()
+    );
     println!();
 
     // Run the interactive REPL
@@ -75,7 +81,7 @@ fn create_file_manager_agent(config: AgentConfig) -> Result<FileManagerAgent> {
 
     // Create tool registry and register FileReader tool
     let mut tools = ToolRegistry::new();
-    
+
     // Register FileReader - allows reading file contents
     // This is the only tool needed for file management tasks
     tools.register(Box::new(FileReader::new()));
@@ -93,16 +99,16 @@ fn create_file_manager_agent(config: AgentConfig) -> Result<FileManagerAgent> {
     // Create guardrails registry with FilePathGuardrail
     // This is the key security feature of this example
     let mut guardrails = GuardrailRegistry::new();
-    
+
     // Define allowed paths for file access
     // In this example, we allow:
     // 1. Current working directory
     // 2. Examples directory (for demonstration)
     let current_dir = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
     let examples_dir = current_dir.join("examples");
-    
+
     let allowed_paths = vec![current_dir, examples_dir];
-    
+
     // Register the FilePathGuardrail
     // This guardrail will validate all file operations before execution
     guardrails.register(Box::new(FilePathGuardrail::new(allowed_paths)));
@@ -136,8 +142,12 @@ impl FileManagerAgent {
         let available_tools = self.executor.list_tools();
         println!("{}", "  → Planning file operations...".bright_blue());
         let plan = self.planner.create_plan(query, &available_tools).await?;
-        
-        println!("{} {} steps", "  → Plan created with".bright_blue(), plan.steps.len());
+
+        println!(
+            "{} {} steps",
+            "  → Plan created with".bright_blue(),
+            plan.steps.len()
+        );
 
         // Validate plan with guardrails
         // This is where FilePathGuardrail checks file access permissions
@@ -148,7 +158,10 @@ impl FileManagerAgent {
             }
             Err(e) => {
                 // Guardrail violation detected
-                println!("{}", "  ✗ Guardrail violation detected!".bright_red().bold());
+                println!(
+                    "{}",
+                    "  ✗ Guardrail violation detected!".bright_red().bold()
+                );
                 return Err(e);
             }
         }
@@ -172,7 +185,10 @@ async fn run_file_manager_repl(agent: &mut FileManagerAgent) -> Result<()> {
         agent_core::AgentError::Execution(format!("Failed to initialize REPL: {}", e))
     })?;
 
-    println!("{}", "File Manager REPL - Ask about files in allowed directories".bright_green());
+    println!(
+        "{}",
+        "File Manager REPL - Ask about files in allowed directories".bright_green()
+    );
     println!("The agent will use FileReader tool with guardrail protection.");
     println!("Commands: 'exit' to quit, 'help' for help, 'examples' for sample queries");
     println!();
@@ -201,20 +217,38 @@ async fn run_file_manager_repl(agent: &mut FileManagerAgent) -> Result<()> {
                     }
                     "help" => {
                         println!("\n{}", "Available commands:".bright_cyan().bold());
-                        println!("  {}  - Exit the file manager", "exit, quit".bright_yellow());
-                        println!("  {}        - Show this help message", "help".bright_yellow());
-                        println!("  {}    - Show example file queries", "examples".bright_yellow());
+                        println!(
+                            "  {}  - Exit the file manager",
+                            "exit, quit".bright_yellow()
+                        );
+                        println!(
+                            "  {}        - Show this help message",
+                            "help".bright_yellow()
+                        );
+                        println!(
+                            "  {}    - Show example file queries",
+                            "examples".bright_yellow()
+                        );
                         println!();
                         continue;
                     }
                     "examples" => {
-                        println!("\n{}", "Example file management queries:".bright_cyan().bold());
+                        println!(
+                            "\n{}",
+                            "Example file management queries:".bright_cyan().bold()
+                        );
                         println!("  • Read the README.md file and summarize it");
                         println!("  • What's in the Cargo.toml file?");
-                        println!("  • Read examples/configs/chatbot.yaml and explain the configuration");
+                        println!(
+                            "  • Read examples/configs/chatbot.yaml and explain the configuration"
+                        );
                         println!("  • Try to read /etc/passwd (will be blocked by guardrail)");
                         println!();
-                        println!("{}", "Note: Attempts to access files outside allowed paths will be blocked.".bright_yellow());
+                        println!(
+                            "{}",
+                            "Note: Attempts to access files outside allowed paths will be blocked."
+                                .bright_yellow()
+                        );
                         println!();
                         continue;
                     }
@@ -233,11 +267,19 @@ async fn run_file_manager_repl(agent: &mut FileManagerAgent) -> Result<()> {
                         // Print error with colored output
                         // Guardrail violations will appear here
                         eprintln!("\n{} {}\n", "Error:".bright_red().bold(), e);
-                        
+
                         // Provide helpful message for guardrail violations
                         if e.to_string().contains("Guardrail") {
-                            eprintln!("{}", "This file access was blocked by the FilePathGuardrail.".bright_yellow());
-                            eprintln!("{}", "Only files in allowed directories can be accessed.".bright_yellow());
+                            eprintln!(
+                                "{}",
+                                "This file access was blocked by the FilePathGuardrail."
+                                    .bright_yellow()
+                            );
+                            eprintln!(
+                                "{}",
+                                "Only files in allowed directories can be accessed."
+                                    .bright_yellow()
+                            );
                             eprintln!();
                         }
                     }

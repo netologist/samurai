@@ -6,10 +6,10 @@ use std::collections::HashMap;
 pub struct PlanningContext {
     /// The system prompt that will be sent to the LLM
     pub system_prompt: String,
-    
+
     /// Additional constraints to guide agent behavior
     pub constraints: Vec<String>,
-    
+
     /// Arbitrary metadata that rules can use to communicate
     pub metadata: HashMap<String, String>,
 }
@@ -23,17 +23,17 @@ impl PlanningContext {
             metadata: HashMap::new(),
         }
     }
-    
+
     /// Add a constraint to the context
     pub fn add_constraint(&mut self, constraint: String) {
         self.constraints.push(constraint);
     }
-    
+
     /// Set a metadata value
     pub fn set_metadata(&mut self, key: String, value: String) {
         self.metadata.insert(key, value);
     }
-    
+
     /// Get a metadata value
     pub fn get_metadata(&self, key: &str) -> Option<&String> {
         self.metadata.get(key)

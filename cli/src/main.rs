@@ -37,19 +37,38 @@ async fn main() -> anyhow::Result<()> {
     let args = CliArgs::parse();
 
     // Enable verbose logging if requested
-    if args.verbose {
-        println!("{}", "Verbose logging enabled".bright_blue());
-        println!("{} {}", "Loading configuration from:".bright_blue(), args.config.display());
-    }
+    // Load configuration
+    let config = match &args.config {
+        Some(path) => {
+            if args.verbose {
+                println!(
+                    "{} {}",
+                    "Loading configuration from:".bright_blue(),
+                    path.display()
+                );
+            }
+            config::load_from_file(path).map_err(|e| {
+                eprintln!("{} {}", "Error:".bright_red().bold(), e);
+                anyhow::anyhow!("Failed to load configuration: {}", e)
+            })?
+        }
+        None => {
+            if args.verbose {
+                println!(
+                    "{}",
+                    "Loading configuration from default locations...".bright_blue()
+                );
+            }
+            config::load_defaults().map_err(|e| {
+                eprintln!("{} {}", "Error:".bright_red().bold(), e);
+                anyhow::anyhow!("Failed to load configuration from defaults: {}", e)
+            })?
+        }
+    };
 
-    // Load configuration from file
-    let config = config::load_from_file(&args.config).map_err(|e| {
-        eprintln!("{} {}", "Error:".bright_red().bold(), e);
-        anyhow::anyhow!("Failed to load configuration: {}", e)
-    })?;
-
     if args.verbose {
-        println!("{} {} with model {}", 
+        println!(
+            "{} {} with model {}",
             "Configuration loaded:".bright_blue(),
             config.llm.provider,
             config.llm.model

@@ -46,7 +46,7 @@ impl Agent {
 
         // Create tool registry and register default tools
         let mut tools = ToolRegistry::new();
-        
+
         // Register tools based on config or use defaults
         if config.tools.is_empty() || config.tools.contains(&"calculator".to_string()) {
             tools.register(Box::new(Calculator::new()));
@@ -69,7 +69,7 @@ impl Agent {
 
         // Create guardrails registry and register default guardrails
         let mut guardrails = GuardrailRegistry::new();
-        
+
         // Register guardrails based on config
         if config.guardrails.contains(&"file_path".to_string()) {
             // Default to allowing /tmp and current directory

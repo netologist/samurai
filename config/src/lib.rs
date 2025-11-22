@@ -115,6 +115,40 @@ pub fn load_from_file(path: &Path) -> Result<AgentConfig> {
     Ok(config)
 }
 
+/// Load agent configuration from standard locations
+///
+/// Search order:
+/// 1. `AGENT_CONFIG_PATH` environment variable
+/// 2. Current directory: `agent_config.yaml`
+/// 3. User config directory: `~/.config/ai-agent/config.yaml`
+/// 4. Fallback to environment variables
+pub fn load_defaults() -> Result<AgentConfig> {
+    // 1. Check AGENT_CONFIG_PATH
+    if let Ok(path) = std::env::var("AGENT_CONFIG_PATH") {
+        let path = Path::new(&path);
+        if path.exists() {
+            return load_from_file(path);
+        }
+    }
+
+    // 2. Check current directory
+    let current_dir_config = Path::new("agent_config.yaml");
+    if current_dir_config.exists() {
+        return load_from_file(current_dir_config);
+    }
+
+    // 3. Check user config directory
+    if let Some(config_dir) = dirs::config_dir() {
+        let user_config = config_dir.join("ai-agent").join("config.yaml");
+        if user_config.exists() {
+            return load_from_file(&user_config);
+        }
+    }
+
+    // 4. Fallback to environment variables
+    from_env()
+}
+
 /// Merge two configurations, with environment config taking precedence
 ///
 /// # Arguments
@@ -131,10 +165,10 @@ pub fn load_from_file(path: &Path) -> Result<AgentConfig> {
 pub fn merge(mut file_config: AgentConfig, env_config: AgentConfig) -> AgentConfig {
     // Override LLM config with env values
     file_config.llm = env_config.llm;
-    
+
     // Keep file-based memory, tools, and guardrails settings
     // (env config doesn't provide these)
-    
+
     file_config
 }
 
@@ -214,7 +248,7 @@ pub fn validate(config: &AgentConfig) -> Result<()> {
 /// Returns an error if required environment variables are missing
 pub fn from_env() -> Result<AgentConfig> {
     let provider = std::env::var("LLM_PROVIDER").unwrap_or_else(|_| "openai".to_string());
-    
+
     let api_key = match provider.as_str() {
         "openai" => std::env::var("OPENAI_API_KEY").map_err(|_| {
             AgentError::Config("OPENAI_API_KEY environment variable not set".to_string())
@@ -226,16 +260,14 @@ pub fn from_env() -> Result<AgentConfig> {
             return Err(AgentError::Config(format!(
                 "Unknown provider '{}'. Set OPENAI_API_KEY or ANTHROPIC_API_KEY",
                 provider
-            )))
+            )));
         }
     };
 
-    let model = std::env::var("MODEL").unwrap_or_else(|_| {
-        match provider.as_str() {
-            "openai" => "gpt-3.5-turbo".to_string(),
-            "anthropic" => "claude-3-sonnet-20240229".to_string(),
-            _ => "gpt-3.5-turbo".to_string(),
-        }
+    let model = std::env::var("MODEL").unwrap_or_else(|_| match provider.as_str() {
+        "openai" => "gpt-3.5-turbo".to_string(),
+        "anthropic" => "claude-3-sonnet-20240229".to_string(),
+        _ => "gpt-3.5-turbo".to_string(),
     });
 
     let temperature = std::env::var("TEMPERATURE")
@@ -253,13 +285,11 @@ pub fn from_env() -> Result<AgentConfig> {
             provider: provider.clone(),
             model,
             api_key,
-            base_url: Some(
-                match provider.as_str() {
-                    "openai" => "https://api.openai.com/v1".to_string(),
-                    "anthropic" => "https://api.anthropic.com/v1".to_string(),
-                    _ => "".to_string(),
-                },
-            ),
+            base_url: Some(match provider.as_str() {
+                "openai" => "https://api.openai.com/v1".to_string(),
+                "anthropic" => "https://api.anthropic.com/v1".to_string(),
+                _ => "".to_string(),
+            }),
             temperature,
             max_tokens,
         },
@@ -287,7 +317,7 @@ mod tests {
               api_key: test-key
             memory: {}
         "#;
-        
+
         let config: AgentConfig = serde_yaml::from_str(config_str).unwrap();
         assert_eq!(config.llm.temperature, 0.7);
         assert_eq!(config.llm.max_tokens, 2000);
@@ -313,14 +343,14 @@ tools:
 guardrails:
   - file_path
 "#;
-        
+
         let temp_dir = std::env::temp_dir();
         let config_path = temp_dir.join("test_config.yaml");
         let mut file = std::fs::File::create(&config_path).unwrap();
         file.write_all(config_content.as_bytes()).unwrap();
-        
+
         let config = load_from_file(&config_path).unwrap();
-        
+
         assert_eq!(config.llm.provider, "openai");
         assert_eq!(config.llm.model, "gpt-4");
         assert_eq!(config.llm.api_key, "test-key-123");
@@ -330,7 +360,7 @@ guardrails:
         assert_eq!(config.memory.token_budget, 3000);
         assert_eq!(config.tools, vec!["calculator", "file_reader"]);
         assert_eq!(config.guardrails, vec!["file_path"]);
-        
+
         std::fs::remove_file(config_path).unwrap();
     }
 
@@ -338,22 +368,32 @@ guardrails:
     fn test_load_from_file_missing() {
         let result = load_from_file(Path::new("/nonexistent/config.yaml"));
         assert!(result.is_err());
-        assert!(result.unwrap_err().to_string().contains("Failed to read config file"));
+        assert!(
+            result
+                .unwrap_err()
+                .to_string()
+                .contains("Failed to read config file")
+        );
     }
 
     #[test]
     fn test_load_from_file_invalid_yaml() {
         let config_content = "invalid: yaml: content: [[[";
-        
+
         let temp_dir = std::env::temp_dir();
         let config_path = temp_dir.join("test_invalid_config.yaml");
         let mut file = std::fs::File::create(&config_path).unwrap();
         file.write_all(config_content.as_bytes()).unwrap();
-        
+
         let result = load_from_file(&config_path);
         assert!(result.is_err());
-        assert!(result.unwrap_err().to_string().contains("Failed to parse config file"));
-        
+        assert!(
+            result
+                .unwrap_err()
+                .to_string()
+                .contains("Failed to parse config file")
+        );
+
         std::fs::remove_file(config_path).unwrap();
     }
 
@@ -377,7 +417,7 @@ guardrails:
         }
 
         let config = from_env().unwrap();
-        
+
         assert_eq!(config.llm.provider, "openai");
         assert_eq!(config.llm.api_key, "test-openai-key");
         assert_eq!(config.llm.model, "gpt-4");
@@ -386,12 +426,36 @@ guardrails:
 
         // Restore env vars
         unsafe {
-            if let Some(v) = saved_provider { std::env::set_var("LLM_PROVIDER", v); } else { std::env::remove_var("LLM_PROVIDER"); }
-            if let Some(v) = saved_openai_key { std::env::set_var("OPENAI_API_KEY", v); } else { std::env::remove_var("OPENAI_API_KEY"); }
-            if let Some(v) = saved_anthropic_key { std::env::set_var("ANTHROPIC_API_KEY", v); } else { std::env::remove_var("ANTHROPIC_API_KEY"); }
-            if let Some(v) = saved_model { std::env::set_var("MODEL", v); } else { std::env::remove_var("MODEL"); }
-            if let Some(v) = saved_temp { std::env::set_var("TEMPERATURE", v); } else { std::env::remove_var("TEMPERATURE"); }
-            if let Some(v) = saved_tokens { std::env::set_var("MAX_TOKENS", v); } else { std::env::remove_var("MAX_TOKENS"); }
+            if let Some(v) = saved_provider {
+                std::env::set_var("LLM_PROVIDER", v);
+            } else {
+                std::env::remove_var("LLM_PROVIDER");
+            }
+            if let Some(v) = saved_openai_key {
+                std::env::set_var("OPENAI_API_KEY", v);
+            } else {
+                std::env::remove_var("OPENAI_API_KEY");
+            }
+            if let Some(v) = saved_anthropic_key {
+                std::env::set_var("ANTHROPIC_API_KEY", v);
+            } else {
+                std::env::remove_var("ANTHROPIC_API_KEY");
+            }
+            if let Some(v) = saved_model {
+                std::env::set_var("MODEL", v);
+            } else {
+                std::env::remove_var("MODEL");
+            }
+            if let Some(v) = saved_temp {
+                std::env::set_var("TEMPERATURE", v);
+            } else {
+                std::env::remove_var("TEMPERATURE");
+            }
+            if let Some(v) = saved_tokens {
+                std::env::set_var("MAX_TOKENS", v);
+            } else {
+                std::env::remove_var("MAX_TOKENS");
+            }
         }
     }
 
@@ -415,7 +479,7 @@ guardrails:
         }
 
         let config = from_env().unwrap();
-        
+
         assert_eq!(config.llm.provider, "anthropic");
         assert_eq!(config.llm.api_key, "test-anthropic-key");
         assert_eq!(config.llm.model, "claude-3-sonnet-20240229");
@@ -424,16 +488,41 @@ guardrails:
 
         // Restore env vars
         unsafe {
-            if let Some(v) = saved_provider { std::env::set_var("LLM_PROVIDER", v); } else { std::env::remove_var("LLM_PROVIDER"); }
-            if let Some(v) = saved_openai_key { std::env::set_var("OPENAI_API_KEY", v); } else { std::env::remove_var("OPENAI_API_KEY"); }
-            if let Some(v) = saved_anthropic_key { std::env::set_var("ANTHROPIC_API_KEY", v); } else { std::env::remove_var("ANTHROPIC_API_KEY"); }
-            if let Some(v) = saved_model { std::env::set_var("MODEL", v); } else { std::env::remove_var("MODEL"); }
-            if let Some(v) = saved_temp { std::env::set_var("TEMPERATURE", v); } else { std::env::remove_var("TEMPERATURE"); }
-            if let Some(v) = saved_tokens { std::env::set_var("MAX_TOKENS", v); } else { std::env::remove_var("MAX_TOKENS"); }
+            if let Some(v) = saved_provider {
+                std::env::set_var("LLM_PROVIDER", v);
+            } else {
+                std::env::remove_var("LLM_PROVIDER");
+            }
+            if let Some(v) = saved_openai_key {
+                std::env::set_var("OPENAI_API_KEY", v);
+            } else {
+                std::env::remove_var("OPENAI_API_KEY");
+            }
+            if let Some(v) = saved_anthropic_key {
+                std::env::set_var("ANTHROPIC_API_KEY", v);
+            } else {
+                std::env::remove_var("ANTHROPIC_API_KEY");
+            }
+            if let Some(v) = saved_model {
+                std::env::set_var("MODEL", v);
+            } else {
+                std::env::remove_var("MODEL");
+            }
+            if let Some(v) = saved_temp {
+                std::env::set_var("TEMPERATURE", v);
+            } else {
+                std::env::remove_var("TEMPERATURE");
+            }
+            if let Some(v) = saved_tokens {
+                std::env::set_var("MAX_TOKENS", v);
+            } else {
+                std::env::remove_var("MAX_TOKENS");
+            }
         }
     }
 
     #[test]
+    #[serial]
     fn test_from_env_defaults() {
         // Save existing env vars
         let saved_provider = std::env::var("LLM_PROVIDER").ok();
@@ -453,7 +542,7 @@ guardrails:
         }
 
         let config = from_env().unwrap();
-        
+
         assert_eq!(config.llm.provider, "openai");
         assert_eq!(config.llm.model, "gpt-3.5-turbo");
         assert_eq!(config.llm.temperature, 0.7);
@@ -463,16 +552,41 @@ guardrails:
 
         // Restore env vars
         unsafe {
-            if let Some(v) = saved_provider { std::env::set_var("LLM_PROVIDER", v); } else { std::env::remove_var("LLM_PROVIDER"); }
-            if let Some(v) = saved_openai_key { std::env::set_var("OPENAI_API_KEY", v); } else { std::env::remove_var("OPENAI_API_KEY"); }
-            if let Some(v) = saved_anthropic_key { std::env::set_var("ANTHROPIC_API_KEY", v); } else { std::env::remove_var("ANTHROPIC_API_KEY"); }
-            if let Some(v) = saved_model { std::env::set_var("MODEL", v); } else { std::env::remove_var("MODEL"); }
-            if let Some(v) = saved_temp { std::env::set_var("TEMPERATURE", v); } else { std::env::remove_var("TEMPERATURE"); }
-            if let Some(v) = saved_tokens { std::env::set_var("MAX_TOKENS", v); } else { std::env::remove_var("MAX_TOKENS"); }
+            if let Some(v) = saved_provider {
+                std::env::set_var("LLM_PROVIDER", v);
+            } else {
+                std::env::remove_var("LLM_PROVIDER");
+            }
+            if let Some(v) = saved_openai_key {
+                std::env::set_var("OPENAI_API_KEY", v);
+            } else {
+                std::env::remove_var("OPENAI_API_KEY");
+            }
+            if let Some(v) = saved_anthropic_key {
+                std::env::set_var("ANTHROPIC_API_KEY", v);
+            } else {
+                std::env::remove_var("ANTHROPIC_API_KEY");
+            }
+            if let Some(v) = saved_model {
+                std::env::set_var("MODEL", v);
+            } else {
+                std::env::remove_var("MODEL");
+            }
+            if let Some(v) = saved_temp {
+                std::env::set_var("TEMPERATURE", v);
+            } else {
+                std::env::remove_var("TEMPERATURE");
+            }
+            if let Some(v) = saved_tokens {
+                std::env::set_var("MAX_TOKENS", v);
+            } else {
+                std::env::remove_var("MAX_TOKENS");
+            }
         }
     }
 
     #[test]
+    #[serial]
     fn test_from_env_missing_api_key() {
         // Save existing env vars
         let saved_provider = std::env::var("LLM_PROVIDER").ok();
@@ -494,12 +608,36 @@ guardrails:
 
         // Restore env vars
         unsafe {
-            if let Some(v) = saved_provider { std::env::set_var("LLM_PROVIDER", v); } else { std::env::remove_var("LLM_PROVIDER"); }
-            if let Some(v) = saved_openai_key { std::env::set_var("OPENAI_API_KEY", v); } else { std::env::remove_var("OPENAI_API_KEY"); }
-            if let Some(v) = saved_anthropic_key { std::env::set_var("ANTHROPIC_API_KEY", v); } else { std::env::remove_var("ANTHROPIC_API_KEY"); }
-            if let Some(v) = saved_model { std::env::set_var("MODEL", v); } else { std::env::remove_var("MODEL"); }
-            if let Some(v) = saved_temp { std::env::set_var("TEMPERATURE", v); } else { std::env::remove_var("TEMPERATURE"); }
-            if let Some(v) = saved_tokens { std::env::set_var("MAX_TOKENS", v); } else { std::env::remove_var("MAX_TOKENS"); }
+            if let Some(v) = saved_provider {
+                std::env::set_var("LLM_PROVIDER", v);
+            } else {
+                std::env::remove_var("LLM_PROVIDER");
+            }
+            if let Some(v) = saved_openai_key {
+                std::env::set_var("OPENAI_API_KEY", v);
+            } else {
+                std::env::remove_var("OPENAI_API_KEY");
+            }
+            if let Some(v) = saved_anthropic_key {
+                std::env::set_var("ANTHROPIC_API_KEY", v);
+            } else {
+                std::env::remove_var("ANTHROPIC_API_KEY");
+            }
+            if let Some(v) = saved_model {
+                std::env::set_var("MODEL", v);
+            } else {
+                std::env::remove_var("MODEL");
+            }
+            if let Some(v) = saved_temp {
+                std::env::set_var("TEMPERATURE", v);
+            } else {
+                std::env::remove_var("TEMPERATURE");
+            }
+            if let Some(v) = saved_tokens {
+                std::env::set_var("MAX_TOKENS", v);
+            } else {
+                std::env::remove_var("MAX_TOKENS");
+            }
         }
     }
 

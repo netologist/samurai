@@ -37,7 +37,10 @@ use tools::{FileReader, ToolRegistry, WebSearchStub};
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    println!("{}", "=== Research Assistant Example ===".bright_cyan().bold());
+    println!(
+        "{}",
+        "=== Research Assistant Example ===".bright_cyan().bold()
+    );
     println!("This example demonstrates an agent with tool capabilities.");
     println!("Available tools: WebSearch (stub), FileReader");
     println!();
@@ -62,17 +65,17 @@ fn create_research_agent(config: AgentConfig) -> Result<ResearchAgent> {
 
     // Create tool registry and register research tools
     let mut tools = ToolRegistry::new();
-    
+
     // Register WebSearchStub - simulates web search capability
     // In a production system, this would integrate with a real search API
     tools.register(Box::new(WebSearchStub::new()));
     println!("{}", "  ✓ Registered WebSearchStub tool".bright_green());
-    
+
     // Register FileReader - allows reading file contents
     // Useful for analyzing documents, code, or data files
     tools.register(Box::new(FileReader::new()));
     println!("{}", "  ✓ Registered FileReader tool".bright_green());
-    
+
     println!();
 
     // Create planner with LLM and memory
@@ -118,8 +121,12 @@ impl ResearchAgent {
         let available_tools = self.executor.list_tools();
         println!("{}", "  → Planning research steps...".bright_blue());
         let plan = self.planner.create_plan(query, &available_tools).await?;
-        
-        println!("{} {} steps", "  → Plan created with".bright_blue(), plan.steps.len());
+
+        println!(
+            "{} {} steps",
+            "  → Plan created with".bright_blue(),
+            plan.steps.len()
+        );
 
         // Validate plan with guardrails (if any are configured)
         self.guardrails.validate_all(&plan)?;
@@ -144,7 +151,10 @@ async fn run_research_repl(agent: &mut ResearchAgent) -> Result<()> {
         agent_core::AgentError::Execution(format!("Failed to initialize REPL: {}", e))
     })?;
 
-    println!("{}", "Research Assistant REPL - Ask research questions".bright_green());
+    println!(
+        "{}",
+        "Research Assistant REPL - Ask research questions".bright_green()
+    );
     println!("The assistant will use tools to gather and analyze information.");
     println!("Commands: 'exit' to quit, 'help' for help, 'examples' for sample queries");
     println!();
@@ -173,9 +183,18 @@ async fn run_research_repl(agent: &mut ResearchAgent) -> Result<()> {
                     }
                     "help" => {
                         println!("\n{}", "Available commands:".bright_cyan().bold());
-                        println!("  {}  - Exit the research assistant", "exit, quit".bright_yellow());
-                        println!("  {}        - Show this help message", "help".bright_yellow());
-                        println!("  {}    - Show example research queries", "examples".bright_yellow());
+                        println!(
+                            "  {}  - Exit the research assistant",
+                            "exit, quit".bright_yellow()
+                        );
+                        println!(
+                            "  {}        - Show this help message",
+                            "help".bright_yellow()
+                        );
+                        println!(
+                            "  {}    - Show example research queries",
+                            "examples".bright_yellow()
+                        );
                         println!();
                         continue;
                     }
@@ -183,7 +202,9 @@ async fn run_research_repl(agent: &mut ResearchAgent) -> Result<()> {
                         println!("\n{}", "Example research queries:".bright_cyan().bold());
                         println!("  • Search for information about Rust async programming");
                         println!("  • Read the README.md file and summarize it");
-                        println!("  • Find information about AI agents and explain the key concepts");
+                        println!(
+                            "  • Find information about AI agents and explain the key concepts"
+                        );
                         println!("  • Analyze the Cargo.toml file and list all dependencies");
                         println!();
                         continue;

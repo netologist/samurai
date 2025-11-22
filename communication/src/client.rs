@@ -95,9 +95,10 @@ impl ApiClient {
         }
 
         // Deserialize the response
-        response.json().await.map_err(|e| {
-            AgentError::LLMProvider(format!("Failed to deserialize response: {}", e))
-        })
+        response
+            .json()
+            .await
+            .map_err(|e| AgentError::LLMProvider(format!("Failed to deserialize response: {}", e)))
     }
 
     /// Get the configured timeout
@@ -185,9 +186,7 @@ mod tests {
         // Set up mock to return 500 error
         Mock::given(method("POST"))
             .and(path("/error"))
-            .respond_with(
-                ResponseTemplate::new(500).set_body_string("Internal Server Error"),
-            )
+            .respond_with(ResponseTemplate::new(500).set_body_string("Internal Server Error"))
             .mount(&mock_server)
             .await;
 
@@ -375,8 +374,8 @@ mod tests {
     #[tokio::test]
     async fn test_retry_with_eventual_success() {
         use crate::with_retry;
-        use std::sync::atomic::{AtomicU32, Ordering};
         use std::sync::Arc;
+        use std::sync::atomic::{AtomicU32, Ordering};
 
         // Start a mock server
         let mock_server = MockServer::start().await;

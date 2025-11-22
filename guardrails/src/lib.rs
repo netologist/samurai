@@ -110,12 +110,12 @@
 //! }
 //! ```
 
-mod guardrail;
-mod registry;
 mod file_path;
+mod guardrail;
 mod rate_limit;
+mod registry;
 
-pub use guardrail::Guardrail;
-pub use registry::GuardrailRegistry;
 pub use file_path::FilePathGuardrail;
+pub use guardrail::Guardrail;
 pub use rate_limit::RateLimitGuardrail;
+pub use registry::GuardrailRegistry;

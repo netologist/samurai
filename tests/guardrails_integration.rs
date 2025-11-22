@@ -3,7 +3,7 @@
 // These tests verify that guardrails correctly validate plans and prevent
 // the execution of unauthorized or dangerous actions.
 
-use agent_core::{AgentError, Result};
+use agent_core::AgentError;
 use guardrails::{FilePathGuardrail, Guardrail, GuardrailRegistry, RateLimitGuardrail};
 use planner::{Plan, Step, ToolCall};
 use serde_json::json;
@@ -18,11 +18,11 @@ fn test_file_path_guardrail_allowed() {
         vec![
             Step::ToolCall(ToolCall {
                 tool_name: "file_reader".to_string(),
-                parameters: json!({ "path": "/safe/file.txt" }),
+                parameters: json!({ "file_path": "/safe/file.txt" }),
             }),
             Step::ToolCall(ToolCall {
                 tool_name: "file_writer".to_string(),
-                parameters: json!({ "path": "/tmp/file.txt" }),
+                parameters: json!({ "file_path": "/tmp/file.txt" }),
             }),
         ],
         "Test plan with allowed paths".to_string(),
@@ -40,7 +40,7 @@ fn test_file_path_guardrail_denied() {
     let plan = Plan::new(
         vec![Step::ToolCall(ToolCall {
             tool_name: "file_reader".to_string(),
-            parameters: json!({ "path": "/etc/passwd" }),
+            parameters: json!({ "file_path": "/etc/passwd" }),
         })],
         "Test plan with denied path".to_string(),
     );
@@ -50,7 +50,8 @@ fn test_file_path_guardrail_denied() {
 
     match result {
         Err(AgentError::GuardrailViolation(msg)) => {
-            assert!(msg.contains("Access to path '/etc/passwd' is not allowed"));
+            assert!(msg.contains("File path not allowed"));
+            assert!(msg.contains("/etc/passwd"));
         }
         _ => panic!("Expected GuardrailViolation error"),
     }
@@ -75,7 +76,7 @@ fn test_file_path_guardrail_no_file_tools() {
 
 #[test]
 fn test_rate_limit_guardrail_within_limit() {
-    let mut guardrail = RateLimitGuardrail::new(10); // 10 calls per minute
+    let guardrail = RateLimitGuardrail::new(10); // 10 calls per minute
 
     for _ in 0..10 {
         let plan = Plan::new(
@@ -92,7 +93,7 @@ fn test_rate_limit_guardrail_within_limit() {
 
 #[test]
 fn test_rate_limit_guardrail_exceed_limit() {
-    let mut guardrail = RateLimitGuardrail::new(5); // 5 calls per minute
+    let guardrail = RateLimitGuardrail::new(5); // 5 calls per minute
 
     for _ in 0..5 {
         let plan = Plan::new(
@@ -132,7 +133,7 @@ fn test_guardrail_registry() {
     let valid_plan = Plan::new(
         vec![Step::ToolCall(ToolCall {
             tool_name: "file_reader".to_string(),
-            parameters: json!({ "path": "/safe/file.txt" }),
+            parameters: json!({ "file_path": "/safe/file.txt" }),
         })],
         "Valid plan".to_string(),
     );
@@ -140,7 +141,7 @@ fn test_guardrail_registry() {
     let invalid_plan = Plan::new(
         vec![Step::ToolCall(ToolCall {
             tool_name: "file_reader".to_string(),
-            parameters: json!({ "path": "/etc/passwd" }),
+            parameters: json!({ "file_path": "/etc/passwd" }),
         })],
         "Invalid plan".to_string(),
     );

@@ -1,6 +1,6 @@
+use crate::Guardrail;
 use agent_core::Result;
 use planner::Plan;
-use crate::Guardrail;
 
 /// Registry for managing multiple guardrails.
 ///
@@ -116,16 +116,16 @@ impl Default for GuardrailRegistry {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::{FilePathGuardrail, RateLimitGuardrail};
     use agent_core::AgentError;
     use planner::{Step, ToolCall};
     use serde_json::json;
     use std::path::PathBuf;
-    use crate::{FilePathGuardrail, RateLimitGuardrail};
 
     #[test]
     fn test_empty_registry_passes_validation() {
         let registry = GuardrailRegistry::new();
-        
+
         let plan = Plan::new(
             vec![Step::ToolCall(ToolCall::new(
                 "calculator".to_string(),
@@ -203,7 +203,7 @@ mod tests {
         // Should fail on file path guardrail (first one)
         let result = registry.validate_all(&plan);
         assert!(result.is_err());
-        
+
         // Verify it's a file path violation, not rate limit
         match result {
             Err(AgentError::GuardrailViolation(msg)) => {
@@ -244,7 +244,7 @@ mod tests {
         // Should fail on rate limit guardrail (second one)
         let result = registry.validate_all(&plan);
         assert!(result.is_err());
-        
+
         // Verify it's a rate limit violation
         match result {
             Err(AgentError::GuardrailViolation(msg)) => {
@@ -257,7 +257,7 @@ mod tests {
     #[test]
     fn test_registry_len_and_is_empty() {
         let mut registry = GuardrailRegistry::new();
-        
+
         assert_eq!(registry.len(), 0);
         assert!(registry.is_empty());
 
@@ -265,7 +265,9 @@ mod tests {
         assert_eq!(registry.len(), 1);
         assert!(!registry.is_empty());
 
-        registry.register(Box::new(FilePathGuardrail::new(vec![PathBuf::from("/tmp")])));
+        registry.register(Box::new(FilePathGuardrail::new(vec![PathBuf::from(
+            "/tmp",
+        )])));
         assert_eq!(registry.len(), 2);
         assert!(!registry.is_empty());
     }

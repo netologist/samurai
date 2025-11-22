@@ -23,12 +23,12 @@
 //! assert_eq!(recent.len(), 2);
 //! ```
 
-mod store;
-mod in_memory;
-mod token_counter;
 mod history;
+mod in_memory;
+mod store;
+mod token_counter;
 
-pub use store::MemoryStore;
-pub use in_memory::InMemoryStore;
-pub use token_counter::count_tokens;
 pub use history::ConversationHistory;
+pub use in_memory::InMemoryStore;
+pub use store::MemoryStore;
+pub use token_counter::count_tokens;

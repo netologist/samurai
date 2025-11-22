@@ -1,7 +1,7 @@
+use crate::Guardrail;
 use agent_core::{AgentError, Result};
 use planner::{Plan, Step};
 use std::path::{Path, PathBuf};
-use crate::Guardrail;
 
 /// Guardrail that restricts file operations to allowed directories.
 ///
@@ -64,7 +64,7 @@ impl FilePathGuardrail {
             .and_then(|v| v.as_str())
             .ok_or_else(|| {
                 AgentError::GuardrailViolation(
-                    "file_reader tool call missing 'file_path' parameter".to_string()
+                    "file_reader tool call missing 'file_path' parameter".to_string(),
                 )
             })?;
 
@@ -90,9 +90,7 @@ impl FilePathGuardrail {
 
         for allowed in &self.allowed_paths {
             // Canonicalize allowed path
-            let allowed_canonical = allowed
-                .canonicalize()
-                .unwrap_or_else(|_| allowed.clone());
+            let allowed_canonical = allowed.canonicalize().unwrap_or_else(|_| allowed.clone());
 
             // Check if target path starts with allowed path
             if target_path.starts_with(&allowed_canonical) {
