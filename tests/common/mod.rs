@@ -58,6 +58,7 @@ impl MockLLM {
     }
 
     /// Resets the call count to zero
+    #[allow(dead_code)]
     pub fn reset(&self) {
         *self.call_count.lock().unwrap() = 0;
     }
@@ -186,6 +187,7 @@ pub mod fixtures {
     /// Creates a multi-step calculator plan JSON for testing
     ///
     /// This plan includes multiple calculator operations: (10 + 5) * 2
+    #[allow(dead_code)]
     pub fn multi_step_calculator_plan() -> String {
         r#"{
             "reasoning": "To calculate (10 + 5) * 2, I'll first add 10 and 5, then multiply the result by 2",
@@ -225,6 +227,7 @@ pub mod fixtures {
     }
 
     /// Creates a plan with no tool calls (reasoning only)
+    #[allow(dead_code)]
     pub fn reasoning_only_plan() -> String {
         r#"{
             "reasoning": "This is a simple question that doesn't require tools",
@@ -243,6 +246,7 @@ pub mod fixtures {
     }
 
     /// Creates a plan with an invalid tool reference
+    #[allow(dead_code)]
     pub fn invalid_tool_plan() -> String {
         r#"{
             "reasoning": "I'll use a non-existent tool",
@@ -258,6 +262,7 @@ pub mod fixtures {
     }
 
     /// Creates a plan with file reader tool call
+    #[allow(dead_code)]
     pub fn file_reader_plan(file_path: &str) -> String {
         format!(
             r#"{{
@@ -281,6 +286,7 @@ pub mod fixtures {
     }
 
     /// Creates a plan with multiple tool calls exceeding rate limits
+    #[allow(dead_code)]
     pub fn rate_limit_exceeding_plan(num_calls: usize) -> String {
         let mut steps = Vec::new();
 
@@ -321,6 +327,7 @@ pub mod fixtures {
     }
 
     /// Creates a long conversation for testing memory limits
+    #[allow(dead_code)]
     pub fn long_conversation(num_turns: usize) -> Vec<Message> {
         let mut messages = vec![Message::system("You are a helpful assistant.")];
 
@@ -338,6 +345,7 @@ pub mod assertions {
     use agent_core::AgentError;
 
     /// Asserts that an error is an LLMProvider error
+    #[allow(dead_code)]
     pub fn assert_llm_provider_error(result: &Result<(), AgentError>) {
         assert!(result.is_err(), "Expected LLMProvider error");
         if let Err(AgentError::LLMProvider(_)) = result {
@@ -348,6 +356,7 @@ pub mod assertions {
     }
 
     /// Asserts that an error is a GuardrailViolation error
+    #[allow(dead_code)]
     pub fn assert_guardrail_violation(result: &Result<(), AgentError>) {
         assert!(result.is_err(), "Expected GuardrailViolation error");
         if let Err(AgentError::GuardrailViolation(_)) = result {
@@ -358,6 +367,7 @@ pub mod assertions {
     }
 
     /// Asserts that an error is a ToolExecution error
+    #[allow(dead_code)]
     pub fn assert_tool_execution_error(result: &Result<(), AgentError>) {
         assert!(result.is_err(), "Expected ToolExecution error");
         if let Err(AgentError::ToolExecution { .. }) = result {
@@ -368,6 +378,7 @@ pub mod assertions {
     }
 
     /// Asserts that an error is a Planning error
+    #[allow(dead_code)]
     pub fn assert_planning_error(result: &Result<(), AgentError>) {
         assert!(result.is_err(), "Expected Planning error");
         if let Err(AgentError::Planning(_)) = result {

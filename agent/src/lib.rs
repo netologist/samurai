@@ -175,7 +175,6 @@ mod tests {
     use super::*;
     use agent_core::{Message, Result};
     use async_trait::async_trait;
-    use serde_json::Value;
 
     struct MockLLM;
     #[async_trait]
