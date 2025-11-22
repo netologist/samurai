@@ -1,0 +1,16 @@
+# Ollama Configuration Example
+#
+# This configuration uses Ollama to run open-source models locally.
+# No API key required!
+#
+# Prerequisites:
+# 1. Install Ollama from https://ollama.ai
+# 2. Pull a model: ollama pull llama2
+# 3. Ensure Ollama is running: ollama serve (or it auto-starts)
+
+provider: ollama
+model: llama2  # Other options: mistral, codellama, phi, gemma, etc.
+api_key: ""    # Not required for Ollama
+base_url: http://localhost:11434  # Default Ollama URL
+temperature: 0.7
+max_tokens: 2000

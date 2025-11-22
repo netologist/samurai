@@ -7,6 +7,7 @@
 //!
 //! - **OpenAI**: GPT-3.5, GPT-4, and other OpenAI models
 //! - **Anthropic**: Claude models (Claude 3 Sonnet, Opus, etc.)
+//! - **Ollama**: Local open-source models (llama2, mistral, phi, etc.)
 //!
 //! # Usage
 //!
@@ -34,10 +35,12 @@
 
 pub mod anthropic;
 mod factory;
+pub mod ollama;
 pub mod openai;
 mod provider;
 
 pub use anthropic::AnthropicProvider;
 pub use factory::create_provider;
+pub use ollama::OllamaProvider;
 pub use openai::OpenAIProvider;
 pub use provider::LLMProvider;

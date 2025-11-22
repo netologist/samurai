@@ -1,7 +1,7 @@
 use agent_core::{AgentError, Result};
 use config::LLMConfig;
 
-use crate::{LLMProvider, anthropic::AnthropicProvider, openai::OpenAIProvider};
+use crate::{LLMProvider, anthropic::AnthropicProvider, ollama::OllamaProvider, openai::OpenAIProvider};
 
 /// Create an LLM provider instance from configuration
 ///
@@ -19,6 +19,7 @@ use crate::{LLMProvider, anthropic::AnthropicProvider, openai::OpenAIProvider};
 /// # Supported Providers
 /// - "openai" - OpenAI GPT models
 /// - "anthropic" - Anthropic Claude models
+/// - "ollama" - Ollama local models
 pub fn create_provider(config: &LLMConfig) -> Result<Box<dyn LLMProvider>> {
     match config.provider.as_str() {
         "openai" => {
@@ -29,8 +30,12 @@ pub fn create_provider(config: &LLMConfig) -> Result<Box<dyn LLMProvider>> {
             let provider = AnthropicProvider::new(config)?;
             Ok(Box::new(provider))
         }
+        "ollama" => {
+            let provider = OllamaProvider::new(config)?;
+            Ok(Box::new(provider))
+        }
         _ => Err(AgentError::Config(format!(
-            "Unknown LLM provider: '{}'. Supported providers: openai, anthropic",
+            "Unknown LLM provider: '{}'. Supported providers: openai, anthropic, ollama",
             config.provider
         ))),
     }
@@ -88,5 +93,20 @@ mod tests {
             assert!(err.to_string().contains("Unknown LLM provider"));
             assert!(err.to_string().contains("unknown"));
         }
+    }
+
+    #[test]
+    fn test_create_ollama_provider() {
+        let config = LLMConfig {
+            provider: "ollama".to_string(),
+            model: "llama2".to_string(),
+            api_key: String::new(),
+            base_url: Some("http://localhost:11434".to_string()),
+            temperature: 0.7,
+            max_tokens: 2000,
+        };
+
+        let result = create_provider(&config);
+        assert!(result.is_ok());
     }
 }

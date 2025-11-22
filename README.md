@@ -97,11 +97,41 @@ ai-agent-framework/
 ### Prerequisites
 
 - **Rust**: Version 1.70 or later ([Install Rust](https://rustup.rs/))
-- **API Key**: OpenAI or Anthropic account with API access
-  - [OpenAI API Keys](https://platform.openai.com/api-keys)
-  - [Anthropic API Keys](https://console.anthropic.com/settings/keys)
+- **LLM Provider** (choose one):
+  - **Ollama** (Recommended for local development) - [Install Ollama](https://ollama.ai)
+  - **OpenAI** - API key from [OpenAI API Keys](https://platform.openai.com/api-keys)
+  - **Anthropic** - API key from [Anthropic API Keys](https://console.anthropic.com/settings/keys)
 
 ### Quick Start
+
+#### Option A: Using Ollama (Local, No API Key Required)
+
+**With Docker (Recommended)**:
+```bash
+git clone <repository-url>
+cd ai-agent-framework
+
+# One-command setup (starts container + pulls model)
+make ollama-setup
+# Or: ./scripts/setup-ollama.sh
+
+# Run the chatbot
+make run-ollama
+```
+
+**Native Installation**:
+```bash
+# Install Ollama from https://ollama.ai
+ollama pull llama2
+
+# Clone and run
+git clone <repository-url>
+cd ai-agent-framework
+cargo build --workspace
+cargo run --example ollama_chatbot
+```
+
+#### Option B: Using OpenAI or Anthropic
 
 1. **Clone the repository**:
 ```bash
@@ -132,9 +162,23 @@ You should see an interactive prompt where you can chat with the AI agent!
 
 ### Running Examples
 
-The framework includes three example agents that demonstrate different capabilities:
+The framework includes four example agents that demonstrate different capabilities:
 
-#### 1. Simple Chatbot
+#### 1. Ollama Chatbot (No API Key Required!)
+Conversational agent using local open-source models via Ollama.
+
+```bash
+cargo run --example ollama_chatbot
+```
+
+**What it demonstrates**:
+- Running agents completely locally
+- Using open-source models (llama2, mistral, etc.)
+- No API costs or internet dependency
+
+**Prerequisites**: Ollama installed with a model pulled (e.g., `ollama pull llama2`)
+
+#### 2. Simple Chatbot
 Basic conversational agent with memory but no tools.
 
 ```bash
@@ -142,11 +186,11 @@ cargo run --example chatbot
 ```
 
 **What it demonstrates**:
-- LLM integration (OpenAI/Anthropic)
+- LLM integration (OpenAI/Anthropic/Ollama)
 - Conversation memory
 - Multi-turn interactions
 
-#### 2. Research Assistant
+#### 3. Research Assistant
 Agent with web search and file reading capabilities.
 
 ```bash
@@ -158,7 +202,7 @@ cargo run --example research
 - Multi-step planning
 - Tool result handling
 
-#### 3. File Manager
+#### 4. File Manager
 Agent with file operations and safety guardrails.
 
 ```bash
@@ -307,9 +351,15 @@ Each crate has a specific responsibility and can be understood independently:
 **Implementations**:
 - `OpenAIProvider` - OpenAI API (GPT-3.5, GPT-4)
 - `AnthropicProvider` - Anthropic API (Claude models)
+- `OllamaProvider` - Local Ollama server (llama2, mistral, phi, etc.)
 
 **Factory**:
 - `create_provider(config)` - Creates provider instance from configuration
+
+**Supported Providers**:
+- **OpenAI**: Cloud-based, requires API key, supports GPT models
+- **Anthropic**: Cloud-based, requires API key, supports Claude models
+- **Ollama**: Local execution, no API key needed, supports open-source models
 
 **Dependencies**: `async-trait`, `communication`, `config`, `core`
 

@@ -47,3 +47,7 @@ path = "examples/research.rs"
 [[example]]
 name = "file_manager"
 path = "examples/file_manager.rs"
+
+[[example]]
+name = "ollama_chatbot"
+path = "examples/ollama_chatbot.rs"
