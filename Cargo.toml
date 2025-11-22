@@ -34,6 +34,7 @@ agent = { version = "0.1.0", path = "agent" }
 async-trait = "0.1"
 serde_json = { workspace = true }
 tempfile = "3.8"
+wiremock = "0.6"
 
 [[example]]
 name = "chatbot"

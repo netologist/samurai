@@ -1,12 +1,7 @@
 //! Integration tests for OpenAI provider
 //!
-//! These tests call the real OpenAI API and are marked with #[ignore] to prevent
-//! them from running in CI or during regular test runs. To run these tests:
-//!
-//! ```bash
-//! export OPENAI_API_KEY="your-api-key-here"
-//! cargo test --test openai_integration -- --ignored
-//! ```
+//! These tests use WireMock to mock the OpenAI API, allowing them to run
+//! without requiring API keys or making real network calls.
 //!
 //! Requirements tested:
 //! - 3.2: LLM provider implementation for OpenAI
@@ -15,41 +10,60 @@
 use agent_core::Message;
 use config::LLMConfig;
 use llm::{LLMProvider, OpenAIProvider};
+use wiremock::{
+    matchers::{method, path},
+    Mock, MockServer, ResponseTemplate,
+};
 
-/// Helper function to create a test LLM config
-///
-/// Reads the API key from the OPENAI_API_KEY environment variable
-fn create_test_config() -> LLMConfig {
-    let api_key = std::env::var("OPENAI_API_KEY")
-        .expect("OPENAI_API_KEY environment variable must be set for integration tests");
-
+/// Helper function to create a test LLM config with mock server
+async fn create_test_config(mock_server: &MockServer) -> LLMConfig {
     LLMConfig {
         provider: "openai".to_string(),
         model: "gpt-3.5-turbo".to_string(),
-        api_key,
-        base_url: None,
+        api_key: "sk-test-key".to_string(),
+        base_url: Some(mock_server.uri()),
         temperature: 0.7,
         max_tokens: 100,
     }
 }
 
-/// Helper function to create a test config with an invalid API key
-fn create_invalid_config() -> LLMConfig {
-    LLMConfig {
-        provider: "openai".to_string(),
-        model: "gpt-3.5-turbo".to_string(),
-        api_key: "sk-invalid-key-for-testing".to_string(),
-        base_url: None,
-        temperature: 0.7,
-        max_tokens: 100,
-    }
+/// Helper to create a successful OpenAI response
+fn openai_success_response(content: &str) -> serde_json::Value {
+    serde_json::json!({
+        "id": "chatcmpl-123",
+        "object": "chat.completion",
+        "created": 1677652288,
+        "model": "gpt-3.5-turbo",
+        "choices": [{
+            "index": 0,
+            "message": {
+                "role": "assistant",
+                "content": content
+            },
+            "finish_reason": "stop"
+        }],
+        "usage": {
+            "prompt_tokens": 10,
+            "completion_tokens": 20,
+            "total_tokens": 30
+        }
+    })
 }
 
 #[tokio::test]
-#[ignore] // Requires OPENAI_API_KEY and makes real API call
 async fn test_openai_successful_message_sending() {
-    // Create provider with valid configuration
-    let config = create_test_config();
+    // Start mock server
+    let mock_server = MockServer::start().await;
+
+    // Set up mock response
+    Mock::given(method("POST"))
+        .and(path("/chat/completions"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(openai_success_response("Hello, World!")))
+        .mount(&mock_server)
+        .await;
+
+    // Create provider with mock server
+    let config = create_test_config(&mock_server).await;
     let provider = OpenAIProvider::new(&config).expect("Failed to create OpenAI provider");
 
     // Create a simple test message
@@ -58,28 +72,30 @@ async fn test_openai_successful_message_sending() {
         Message::user("Say 'Hello, World!' and nothing else."),
     ];
 
-    // Send message to OpenAI API
+    // Send message to mock server
     let response = provider
         .send_message(&messages)
         .await
         .expect("Failed to send message to OpenAI API");
 
-    // Verify we got a non-empty response
-    assert!(!response.is_empty(), "Response should not be empty");
-
-    // Verify the response contains expected content
-    // Note: We can't guarantee exact response due to LLM variability,
-    // but we can check it's reasonable
-    assert!(response.len() > 5, "Response should be a reasonable length");
-
-    println!("OpenAI response: {}", response);
+    // Verify we got the expected response
+    assert_eq!(response, "Hello, World!");
 }
 
 #[tokio::test]
-#[ignore] // Requires OPENAI_API_KEY and makes real API call
 async fn test_openai_response_parsing() {
-    // Create provider with valid configuration
-    let config = create_test_config();
+    // Start mock server
+    let mock_server = MockServer::start().await;
+
+    // Set up mock response
+    Mock::given(method("POST"))
+        .and(path("/chat/completions"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(openai_success_response("4")))
+        .mount(&mock_server)
+        .await;
+
+    // Create provider with mock server
+    let config = create_test_config(&mock_server).await;
     let provider = OpenAIProvider::new(&config).expect("Failed to create OpenAI provider");
 
     // Create messages that should get a structured response
@@ -103,15 +119,24 @@ async fn test_openai_response_parsing() {
         "Response should contain the answer '4', got: {}",
         response
     );
-
-    println!("Parsed response: {}", response);
 }
 
 #[tokio::test]
-#[ignore] // Requires OPENAI_API_KEY and makes real API call
 async fn test_openai_multi_turn_conversation() {
-    // Test that the provider can handle multi-turn conversations
-    let config = create_test_config();
+    // Start mock server
+    let mock_server = MockServer::start().await;
+
+    // Set up mock response
+    Mock::given(method("POST"))
+        .and(path("/chat/completions"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(
+            openai_success_response("Your name is Alice.")
+        ))
+        .mount(&mock_server)
+        .await;
+
+    // Create provider with mock server
+    let config = create_test_config(&mock_server).await;
     let provider = OpenAIProvider::new(&config).expect("Failed to create OpenAI provider");
 
     // Create a multi-turn conversation
@@ -138,15 +163,28 @@ async fn test_openai_multi_turn_conversation() {
         "Response should reference the name 'Alice' from conversation history, got: {}",
         response
     );
-
-    println!("Multi-turn response: {}", response);
 }
 
 #[tokio::test]
-#[ignore] // Makes real API call with invalid key
 async fn test_openai_invalid_api_key() {
-    // Create provider with invalid API key
-    let config = create_invalid_config();
+    // Start mock server
+    let mock_server = MockServer::start().await;
+
+    // Set up mock error response for invalid API key
+    Mock::given(method("POST"))
+        .and(path("/chat/completions"))
+        .respond_with(ResponseTemplate::new(401).set_body_json(serde_json::json!({
+            "error": {
+                "message": "Invalid API key",
+                "type": "invalid_request_error",
+                "code": "invalid_api_key"
+            }
+        })))
+        .mount(&mock_server)
+        .await;
+
+    // Create provider with mock server
+    let config = create_test_config(&mock_server).await;
     let provider = OpenAIProvider::new(&config).expect("Failed to create OpenAI provider");
 
     // Create a simple test message
@@ -158,26 +196,36 @@ async fn test_openai_invalid_api_key() {
     // Verify that the request failed
     assert!(result.is_err(), "Request with invalid API key should fail");
 
-    // Verify the error is an LLMProvider error with authentication message
+    // Verify the error is an LLMProvider error
     let error = result.unwrap_err();
     let error_msg = error.to_string();
 
     assert!(
-        error_msg.contains("LLM provider")
-            || error_msg.contains("authentication")
-            || error_msg.contains("Invalid API key"),
+        error_msg.contains("LLM provider") || error_msg.contains("401"),
         "Error should indicate authentication failure, got: {}",
         error_msg
     );
-
-    println!("Expected authentication error: {}", error_msg);
 }
 
 #[tokio::test]
-#[ignore] // Makes real API call
 async fn test_openai_empty_messages() {
-    // Test error handling when no messages are provided
-    let config = create_test_config();
+    // Start mock server
+    let mock_server = MockServer::start().await;
+
+    // Set up mock error response for empty messages
+    Mock::given(method("POST"))
+        .and(path("/chat/completions"))
+        .respond_with(ResponseTemplate::new(400).set_body_json(serde_json::json!({
+            "error": {
+                "message": "messages array is empty",
+                "type": "invalid_request_error"
+            }
+        })))
+        .mount(&mock_server)
+        .await;
+
+    // Create provider with mock server
+    let config = create_test_config(&mock_server).await;
     let provider = OpenAIProvider::new(&config).expect("Failed to create OpenAI provider");
 
     // Send empty messages array
@@ -188,16 +236,24 @@ async fn test_openai_empty_messages() {
 
     // Verify that the request failed
     assert!(result.is_err(), "Request with empty messages should fail");
-
-    let error = result.unwrap_err();
-    println!("Expected error for empty messages: {}", error);
 }
 
 #[tokio::test]
-#[ignore] // Makes real API call
 async fn test_openai_system_message_handling() {
-    // Test that system messages are properly handled
-    let config = create_test_config();
+    // Start mock server
+    let mock_server = MockServer::start().await;
+
+    // Set up mock response
+    Mock::given(method("POST"))
+        .and(path("/chat/completions"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(
+            openai_success_response("Ahoy there, matey! I be doin' fine!")
+        ))
+        .mount(&mock_server)
+        .await;
+
+    // Create provider with mock server
+    let config = create_test_config(&mock_server).await;
     let provider = OpenAIProvider::new(&config).expect("Failed to create OpenAI provider");
 
     // Create messages with a system message that sets specific behavior
@@ -214,19 +270,25 @@ async fn test_openai_system_message_handling() {
 
     // Verify we got a response
     assert!(!response.is_empty(), "Response should not be empty");
-
-    // The response should reflect the system message instruction
-    // (though we can't guarantee exact pirate speak, the system message should influence it)
-    println!("Pirate response: {}", response);
 }
 
 #[tokio::test]
-#[ignore] // Makes real API call
 async fn test_openai_max_tokens_limit() {
-    // Test that max_tokens configuration is respected
-    let mut config = create_test_config();
-    config.max_tokens = 10; // Very small limit
+    // Start mock server
+    let mock_server = MockServer::start().await;
 
+    // Set up mock response with short content
+    Mock::given(method("POST"))
+        .and(path("/chat/completions"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(
+            openai_success_response("Once upon")
+        ))
+        .mount(&mock_server)
+        .await;
+
+    // Create provider with low max_tokens
+    let mut config = create_test_config(&mock_server).await;
+    config.max_tokens = 10;
     let provider = OpenAIProvider::new(&config).expect("Failed to create OpenAI provider");
 
     // Ask for something that would normally generate a long response
@@ -241,26 +303,29 @@ async fn test_openai_max_tokens_limit() {
     // Verify we got a response
     assert!(!response.is_empty(), "Response should not be empty");
 
-    // The response should be relatively short due to max_tokens limit
-    // Note: Token count != character count, but this gives us a rough check
+    // The response should be short
     assert!(
-        response.len() < 200,
+        response.len() < 50,
         "Response should be short due to max_tokens=10, got {} characters",
         response.len()
     );
-
-    println!("Limited response ({} chars): {}", response.len(), response);
 }
 
 #[tokio::test]
-#[ignore] // Makes real API call
 async fn test_openai_temperature_setting() {
-    // Test that temperature configuration is accepted
-    // Note: We can't easily verify the temperature is actually used,
-    // but we can verify the request succeeds with different temperatures
-    let mut config = create_test_config();
-    config.temperature = 0.0; // Deterministic
+    // Start mock server
+    let mock_server = MockServer::start().await;
 
+    // Set up mock response
+    Mock::given(method("POST"))
+        .and(path("/chat/completions"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(openai_success_response("test")))
+        .mount(&mock_server)
+        .await;
+
+    // Create provider with temperature=0.0
+    let mut config = create_test_config(&mock_server).await;
+    config.temperature = 0.0;
     let provider = OpenAIProvider::new(&config).expect("Failed to create OpenAI provider");
 
     let messages = vec![Message::user("Say 'test' and nothing else.")];
@@ -273,6 +338,4 @@ async fn test_openai_temperature_setting() {
 
     // Verify we got a response
     assert!(!response.is_empty(), "Response should not be empty");
-
-    println!("Response with temperature=0.0: {}", response);
 }
