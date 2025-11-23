@@ -45,15 +45,15 @@ make ollama-models    # List downloaded models
 ### Manual Ollama Commands
 ```bash
 # Pull models
-docker exec athena-ollama ollama pull llama2
-docker exec athena-ollama ollama pull mistral
-docker exec athena-ollama ollama pull codellama
+docker exec samurai-ollama ollama pull llama2
+docker exec samurai-ollama ollama pull mistral
+docker exec samurai-ollama ollama pull codellama
 
 # List models
-docker exec athena-ollama ollama list
+docker exec samurai-ollama ollama list
 
 # Remove a model
-docker exec athena-ollama ollama rm llama2
+docker exec samurai-ollama ollama rm llama2
 
 # Health check
 curl http://localhost:11434/api/tags
@@ -174,7 +174,7 @@ ports:
 ```bash
 # Check internet connection
 # Try smaller model first
-docker exec athena-ollama ollama pull tinyllama
+docker exec samurai-ollama ollama pull tinyllama
 ```
 
 ### Tests Failing

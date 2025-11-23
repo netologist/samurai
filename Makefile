@@ -53,7 +53,7 @@ ollama-logs:
 	@docker compose logs -f ollama
 
 ollama-models:
-	@docker exec athena-ollama ollama list
+	@docker exec samurai-ollama ollama list
 
 # Clean build artifacts
 clean:

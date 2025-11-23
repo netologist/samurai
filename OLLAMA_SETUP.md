@@ -35,7 +35,7 @@ If you prefer step-by-step control:
 make ollama-start
 
 # Pull a model (default: llama2)
-docker exec athena-ollama ollama pull llama2
+docker exec samurai-ollama ollama pull llama2
 
 # Run the example
 cargo run --example ollama_chatbot
@@ -79,7 +79,7 @@ To use a different model:
 
 ```bash
 # Pull the model
-docker exec athena-ollama ollama pull mistral
+docker exec samurai-ollama ollama pull mistral
 
 # Update the config
 # Edit examples/configs/ollama.yaml:
@@ -140,14 +140,14 @@ docker compose down -v     # Remove container and data
 docker compose up -d
 
 # Pull additional models
-docker exec athena-ollama ollama pull mistral
-docker exec athena-ollama ollama pull codellama
+docker exec samurai-ollama ollama pull mistral
+docker exec samurai-ollama ollama pull codellama
 
 # List models
-docker exec athena-ollama ollama list
+docker exec samurai-ollama ollama list
 
 # Remove a model
-docker exec athena-ollama ollama rm llama2
+docker exec samurai-ollama ollama rm llama2
 
 # View logs
 docker compose logs -f ollama
@@ -177,12 +177,12 @@ base_url: http://localhost:11435
 
 **Check internet connection** and retry:
 ```bash
-docker exec athena-ollama ollama pull llama2
+docker exec samurai-ollama ollama pull llama2
 ```
 
 **If repeatedly fails**, try a smaller model:
 ```bash
-docker exec athena-ollama ollama pull tinyllama
+docker exec samurai-ollama ollama pull tinyllama
 ```
 
 ### Slow Responses

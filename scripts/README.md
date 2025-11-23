@@ -75,7 +75,7 @@ docker compose logs ollama
 **Model pull fails:**
 ```bash
 # Retry the pull manually
-docker exec athena-ollama ollama pull llama2
+docker exec samurai-ollama ollama pull llama2
 ```
 
 **Port already in use:**

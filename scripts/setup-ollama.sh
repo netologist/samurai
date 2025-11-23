@@ -53,12 +53,12 @@ echo
 
 # Check if model is already pulled
 echo -e "${BLUE}🔍 Checking for model: ${MODEL}${NC}"
-if docker exec athena-ollama ollama list | grep -q "^${MODEL}"; then
+if docker exec samurai-ollama ollama list | grep -q "^${MODEL}"; then
     echo -e "${GREEN}✅ Model '${MODEL}' is already available${NC}"
 else
     echo -e "${YELLOW}📥 Pulling model: ${MODEL}${NC}"
     echo "This may take a few minutes depending on model size..."
-    docker exec athena-ollama ollama pull "$MODEL"
+    docker exec samurai-ollama ollama pull "$MODEL"
     echo -e "${GREEN}✅ Model '${MODEL}' pulled successfully${NC}"
 fi
 
@@ -70,12 +70,12 @@ echo -e "  ${YELLOW}Run the chatbot:${NC}"
 echo "    cargo run --example ollama_chatbot"
 echo
 echo -e "  ${YELLOW}Pull a different model:${NC}"
-echo "    docker exec athena-ollama ollama pull mistral"
-echo "    docker exec athena-ollama ollama pull phi"
-echo "    docker exec athena-ollama ollama pull codellama"
+echo "    docker exec samurai-ollama ollama pull mistral"
+echo "    docker exec samurai-ollama ollama pull phi"
+echo "    docker exec samurai-ollama ollama pull codellama"
 echo
 echo -e "  ${YELLOW}List available models:${NC}"
-echo "    docker exec athena-ollama ollama list"
+echo "    docker exec samurai-ollama ollama list"
 echo
 echo -e "  ${YELLOW}Stop Ollama:${NC}"
 echo "    $COMPOSE_CMD down"
