@@ -24,31 +24,31 @@ The framework is organized into three layers, with clear separation of concerns 
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                        CLI & Examples                            │
-│                    (User Interface Layer)                        │
+│                        CLI & Examples                           │
+│                    (User Interface Layer)                       │
 └────────────────────────────┬────────────────────────────────────┘
                              │
 ┌────────────────────────────┴────────────────────────────────────┐
-│                     Intelligence Layer                           │
-│  ┌──────────┐  ┌──────────┐  ┌───────────┐  ┌──────────┐      │
-│  │ Planner  │  │ Executor │  │Guardrails │  │  Rules   │      │
-│  └──────────┘  └──────────┘  └───────────┘  └──────────┘      │
-│       │              │               │              │            │
-└───────┼──────────────┼───────────────┼──────────────┼───────────┘
-        │              │               │              │
-┌───────┴──────────────┴───────────────┴──────────────┴───────────┐
-│                      Capability Layer                            │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐                      │
-│  │   LLM    │  │  Memory  │  │  Tools   │                      │
-│  └──────────┘  └──────────┘  └──────────┘                      │
-│       │              │               │                           │
-└───────┼──────────────┼───────────────┼───────────────────────────┘
+│                       Intelligence Layer                        │
+│    ┌──────────┐  ┌──────────┐  ┌───────────┐  ┌──────────┐      │
+│    │ Planner  │  │ Executor │  │Guardrails │  │  Rules   │      │
+│    └──────────┘  └──────────┘  └───────────┘  └──────────┘      │
+│         │              │               │              │         │
+└────--───┼──────────────┼───────────────┼──────────────┼─────────┘
+          │              │               │              │
+┌──────--─┴──────────────┴───────────────┴──────────────┴─────────┐
+│                      Capability Layer                           │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐                       │
+│  │   LLM    │  │  Memory  │  │  Tools   │                       │
+│  └──────────┘  └──────────┘  └──────────┘                       │
+│       │              │               │                          │
+└───────┼──────────────┼───────────────┼──────────────────────────┘
         │              │               │
-┌───────┴──────────────┴───────────────┴───────────────────────────┐
-│                      Foundation Layer                            │
-│  ┌──────────┐  ┌──────────┐  ┌──────────────┐                  │
-│  │   Core   │  │  Config  │  │Communication │                  │
-│  └──────────┘  └──────────┘  └──────────────┘                  │
+┌───────┴──────────────┴───────────────┴──────────────────────────┐
+│                      Foundation Layer                           │
+│  ┌──────────┐  ┌──────────┐  ┌──────────────┐                   │
+│  │   Core   │  │  Config  │  │Communication │                   │
+│  └──────────┘  └──────────┘  └──────────────┘                   │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -108,7 +108,7 @@ ai-agent-framework/
 
 **With Docker (Recommended)**:
 ```bash
-git clone <repository-url>
+git clone https://github.com/netologist/samurai ai-agent-framework
 cd ai-agent-framework
 
 # One-command setup (starts container + pulls model)
@@ -125,7 +125,7 @@ make run-ollama
 ollama pull llama2
 
 # Clone and run
-git clone <repository-url>
+git clone https://github.com/netologist/samurai ai-agent-framework
 cd ai-agent-framework
 cargo build --workspace
 cargo run --example ollama_chatbot
@@ -135,7 +135,7 @@ cargo run --example ollama_chatbot
 
 1. **Clone the repository**:
 ```bash
-git clone <repository-url>
+git clone https://github.com/netologist/samurai ai-agent-framework
 cd ai-agent-framework
 ```
 
