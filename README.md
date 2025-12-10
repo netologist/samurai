@@ -1,6 +1,6 @@
 <img width="529" height="311" alt="Screenshot 2025-11-24 at 18 50 39" src="https://github.com/user-attachments/assets/2d2e061a-affa-4b5b-9ff3-ae47b37af91c" />
 
-# SamurAI Agent Framework
+# Samurai AI Agent Framework
 
 An educational Rust framework for building autonomous AI agents with memory, planning, tool execution, and safety guardrails.
 
